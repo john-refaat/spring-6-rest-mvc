@@ -1,0 +1,148 @@
+package guru.springframework.spring6restmvc.services;
+
+import guru.springframework.spring6restmvc.domain.Beer;
+import guru.springframework.spring6restmvc.mappers.BeerMapper;
+import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.repository.BeerRepository;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+
+/**
+ * @author john
+ * @since 11/07/2024
+ */
+@ExtendWith(MockitoExtension.class)
+class BeerServiceImplTest {
+
+    public static final Beer beer1 = Beer.builder().id(UUID.randomUUID()).beerName("My Beer").build();
+    public static final Beer beer2 = Beer.builder().id(UUID.randomUUID()).beerName("Stella").build();
+    private BeerServiceImpl beerService;
+    @Mock
+    private BeerRepository beerRepository;
+
+    @BeforeEach
+    void setUp() {
+        beerService= new BeerServiceImpl(beerRepository, BeerMapper.INSTANCE);
+    }
+
+    @Test
+    void listBeers() {
+        // Given
+        List<Beer> beerDTOList = List.of(beer1, beer2);
+        given(beerRepository.findAll()).willReturn(beerDTOList);
+
+        // When
+        List<BeerDTO> beerDTOS = beerService.listBeers();
+
+        // Then
+        Assertions.assertThat(beerDTOS.size()).isEqualTo(2);
+        Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
+        Assertions.assertThat(beerDTOS.get(1).getBeerName()).isEqualTo(beer2.getBeerName());
+    }
+
+    @Test
+    void getById() {
+        // Given
+        given(beerRepository.findById(beer1.getId())).willReturn(Optional.of(beer1));
+
+        // When
+        BeerDTO beerDTO = beerService.getById(beer1.getId()).get();
+
+        // Then
+        Assertions.assertThat(beerDTO.getBeerName()).isEqualTo(beer1.getBeerName());
+    }
+
+    @Test
+    void save() {
+        // Given
+        BeerDTO beerDTO = BeerDTO.builder().beerName(beer1.getBeerName()).build();
+        given(beerRepository.save(any(Beer.class))).willReturn(beer1);
+
+        // When
+        BeerDTO savedBeerDTO = beerService.save(beerDTO);
+
+        // Then
+        Assertions.assertThat(savedBeerDTO).isNotNull();
+        Assertions.assertThat(savedBeerDTO.getId()).isNotNull();
+        Assertions.assertThat(savedBeerDTO.getBeerName()).isEqualTo(beer1.getBeerName());
+        Assertions.assertThat(savedBeerDTO.getBeerName()).isEqualTo(beer1.getBeerName());
+    }
+
+    @Test
+    void update() {
+        // Given
+        BeerDTO beerDTO = BeerDTO.builder().id(beer1.getId()).beerName("updated").build();
+        Beer updatedBeer = Beer.builder().id(beer1.getId()).beerName("updated").build();
+        given(beerRepository.findById(any(UUID.class))).willReturn(Optional.of(beer1));
+        given(beerRepository.save(any(Beer.class))).willReturn(updatedBeer);
+
+        // When
+        BeerDTO updatedBeerDTO = beerService.update(beerDTO.getId(), beerDTO).get();
+
+        // Then
+        Assertions.assertThat(updatedBeerDTO).isNotNull();
+        Assertions.assertThat(updatedBeerDTO.getId()).isEqualTo(updatedBeer.getId());
+        Assertions.assertThat(updatedBeerDTO.getBeerName()).isEqualTo(updatedBeer.getBeerName());
+    }
+
+    @Test
+    void deleteById() {
+        // Given
+        given(beerRepository.existsById(any(UUID.class))).willReturn(true);
+
+        // When
+        boolean deleted = beerService.deleteById(beer1.getId());
+
+        // Then
+        Assertions.assertThat(deleted).isTrue();
+        ArgumentCaptor<UUID> captor = ArgumentCaptor.forClass(UUID.class);
+        verify(beerRepository, times(1)).deleteById(captor.capture());
+        Assertions.assertThat(captor.getValue()).isEqualTo(beer1.getId());
+    }
+
+    @Test
+    void deleteByIdNotFound(){
+        // Given
+        given(beerRepository.existsById(any(UUID.class))).willReturn(false);
+
+        // When
+        boolean deleted = beerService.deleteById(beer1.getId());
+
+        // Then
+        Assertions.assertThat(deleted).isFalse();
+        verify(beerRepository, never()).deleteById(any(UUID.class));
+    }
+
+
+    @Test
+    void patchById() {
+        // Given
+        BeerDTO beerDTO = BeerDTO.builder().id(beer1.getId()).beerName("updated").build();
+        Beer updatedBeer = Beer.builder().id(beer1.getId()).beerName("updated").build();
+        given(beerRepository.findById(any(UUID.class))).willReturn(Optional.of(beer1));
+        given(beerRepository.save(any(Beer.class))).willReturn(updatedBeer);
+
+        // When
+       beerService.patchById(beerDTO.getId(), beerDTO);
+
+        // Then
+        ArgumentCaptor<UUID> uuidArgumentCaptor = ArgumentCaptor.forClass(UUID.class);
+        verify(beerRepository, times(1)).findById(uuidArgumentCaptor.capture());
+        Assertions.assertThat(uuidArgumentCaptor.getValue()).isEqualTo(beerDTO.getId());
+    }
+}
