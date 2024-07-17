@@ -6,6 +6,7 @@ import guru.springframework.spring6restmvc.services.BeerService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class BeerController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping({"/", ""})
-    public BeerDTO save(@RequestBody BeerDTO beer, HttpServletResponse response) {
+    public BeerDTO save(@Validated @RequestBody BeerDTO beer, HttpServletResponse response) {
         log.debug("Save Beer - in controller");
         BeerDTO savedBeer = beerService.save(beer);
         response.addHeader("Location", PATH+"/"+savedBeer.getId().toString());
@@ -49,7 +50,7 @@ public class BeerController {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/{beerId}")
-    public BeerDTO update(@PathVariable UUID beerId, @RequestBody BeerDTO beer) {
+    public BeerDTO update(@Validated @PathVariable UUID beerId, @Validated @RequestBody BeerDTO beer) {
         log.debug("Update Beer - in controller. Id: {}", beerId.toString());
         return beerService.update(beerId, beer).orElseThrow(NotFoundException::new);
     }
