@@ -7,6 +7,7 @@ import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.model.BeerDTO;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.services.BeerService;
+import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,11 +20,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * @author john
@@ -38,6 +42,7 @@ class BeerControllerTest {
     @Spy
     @InjectMocks
     BeerController controller;
+
     @Mock
     BeerService beerService;
 
@@ -72,7 +77,7 @@ class BeerControllerTest {
     @Test
     void getById() throws Exception {
         //given
-        BDDMockito.given(beerService.getById(ArgumentMatchers.any(UUID.class))).willReturn(Optional.of(fooBeer));
+        BDDMockito.given(beerService.getById(any(UUID.class))).willReturn(Optional.of(fooBeer));
 
         //when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "/" + fooBeer.getId()))
@@ -86,7 +91,7 @@ class BeerControllerTest {
     @Test
     void save() throws Exception {
         // given
-        BDDMockito.given(beerService.save(ArgumentMatchers.any(BeerDTO.class))).willReturn(fooBeer);
+        BDDMockito.given(beerService.save(any(BeerDTO.class))).willReturn(fooBeer);
         BeerDTO savedBeer = BeerDTO.builder().beerName(fooBeer.getBeerName()).beerStyle(fooBeer.getBeerStyle())
                 .upc(fooBeer.getUpc()).price(fooBeer.getPrice()).build();
 
@@ -121,7 +126,7 @@ class BeerControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].message").value("Beer Name is required"));
 
         // then
-        Mockito.verify(beerService, Mockito.times(0)).save(ArgumentMatchers.any(BeerDTO.class));
+        Mockito.verify(beerService, Mockito.times(0)).save(any(BeerDTO.class));
     }
 
     @Test
@@ -136,11 +141,24 @@ class BeerControllerTest {
     }
 
     @Test
+    void createBeerWithNameTooLong() throws Exception {
+        // given
+        BeerDTO newBeerDTO = BeerDTO.builder().beerName("a".repeat(256)).upc("12345676").beerStyle(BeerStyle.WHEAT).price(BigDecimal.TEN).build();
+        BDDMockito.given(beerService.save(any(BeerDTO.class))).willThrow(TransactionSystemException.class);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders.post(BeerController.PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(newBeerDTO)))
+                .andExpect(MockMvcResultMatchers.status().is5xxServerError());
+    }
+
+    @Test
     void update() throws Exception {
         // given
         BeerDTO updatedBeer = fooBeer;
         updatedBeer.setBeerName("updated");
-        BDDMockito.given(beerService.update(ArgumentMatchers.any(UUID.class), ArgumentMatchers.any(BeerDTO.class)))
+        BDDMockito.given(beerService.update(any(UUID.class), any(BeerDTO.class)))
                 .willReturn(Optional.of(updatedBeer));
 
         // when
@@ -168,8 +186,8 @@ class BeerControllerTest {
                .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
         // then
-        Mockito.verify(beerService, Mockito.times(0)).update(ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.any(BeerDTO.class));
+        Mockito.verify(beerService, Mockito.times(0)).update(any(UUID.class),
+                any(BeerDTO.class));
 
     }
 
@@ -187,8 +205,8 @@ class BeerControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].message").value("Beer Style is required"));
 
         // then
-        Mockito.verify(beerService, Mockito.times(0)).update(ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.any(BeerDTO.class));
+        Mockito.verify(beerService, Mockito.times(0)).update(any(UUID.class),
+                any(BeerDTO.class));
     }
 
     @Test
@@ -205,8 +223,8 @@ class BeerControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].message").value("UPC is required"));
 
         // then
-        Mockito.verify(beerService, Mockito.times(0)).update(ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.any(BeerDTO.class));
+        Mockito.verify(beerService, Mockito.times(0)).update(any(UUID.class),
+                any(BeerDTO.class));
     }
 
     @Test
@@ -223,15 +241,15 @@ class BeerControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].message").value("Price is required"));
 
         // then
-        Mockito.verify(beerService, Mockito.times(0)).update(ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.any(BeerDTO.class));
+        Mockito.verify(beerService, Mockito.times(0)).update(any(UUID.class),
+                any(BeerDTO.class));
     }
 
     @Test
     void updateNotFound() throws Exception {
         // given
         fooBeer.setId(UUID.randomUUID());
-        BDDMockito.given(beerService.update(ArgumentMatchers.any(UUID.class), ArgumentMatchers.any(BeerDTO.class)))
+        BDDMockito.given(beerService.update(any(UUID.class), any(BeerDTO.class)))
                 .willReturn(Optional.empty());
 
         // when
@@ -241,8 +259,8 @@ class BeerControllerTest {
                .andExpect(MockMvcResultMatchers.status().isNotFound());
 
         // then
-        Mockito.verify(beerService, Mockito.times(1)).update(ArgumentMatchers.any(UUID.class),
-                ArgumentMatchers.any(BeerDTO.class));
+        Mockito.verify(beerService, Mockito.times(1)).update(any(UUID.class),
+                any(BeerDTO.class));
     }
 
     @Test
@@ -267,7 +285,7 @@ class BeerControllerTest {
     @Test
     void deleteBeer() throws Exception {
         // given
-        BDDMockito.given(beerService.deleteById(ArgumentMatchers.any(UUID.class))).willReturn(true);
+        BDDMockito.given(beerService.deleteById(any(UUID.class))).willReturn(true);
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.delete(BeerController.PATH + "/" + fooBeer.getId()))
@@ -280,27 +298,27 @@ class BeerControllerTest {
     @Test
     void deleteBeerNotFound() throws Exception {
         // given
-        BDDMockito.given(beerService.deleteById(ArgumentMatchers.any(UUID.class))).willReturn(false);
+        BDDMockito.given(beerService.deleteById(any(UUID.class))).willReturn(false);
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.delete(BeerController.PATH + "/" + UUID.randomUUID()))
                .andExpect(MockMvcResultMatchers.status().isNotFound());
 
         // then
-        Mockito.verify(beerService, Mockito.times(1)).deleteById(ArgumentMatchers.any(UUID.class));
+        Mockito.verify(beerService, Mockito.times(1)).deleteById(any(UUID.class));
     }
 
     @Test
     void getBeerbyIdNotFound() throws Exception {
         // given
-        BDDMockito.given(beerService.getById(ArgumentMatchers.any(UUID.class))).willReturn(Optional.empty());
+        BDDMockito.given(beerService.getById(any(UUID.class))).willReturn(Optional.empty());
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "/" + UUID.randomUUID()))
                .andExpect(MockMvcResultMatchers.status().isNotFound());
 
         // then
-        Mockito.verify(beerService, Mockito.times(1)).getById(ArgumentMatchers.any(UUID.class));
+        Mockito.verify(beerService, Mockito.times(1)).getById(any(UUID.class));
     }
 
     private String asJsonString(BeerDTO beer) throws JsonProcessingException {

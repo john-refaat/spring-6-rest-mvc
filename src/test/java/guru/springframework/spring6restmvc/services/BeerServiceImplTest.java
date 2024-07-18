@@ -3,21 +3,23 @@ package guru.springframework.spring6restmvc.services;
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
+import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -80,7 +82,19 @@ class BeerServiceImplTest {
         Assertions.assertThat(savedBeerDTO).isNotNull();
         Assertions.assertThat(savedBeerDTO.getId()).isNotNull();
         Assertions.assertThat(savedBeerDTO.getBeerName()).isEqualTo(beer1.getBeerName());
-        Assertions.assertThat(savedBeerDTO.getBeerName()).isEqualTo(beer1.getBeerName());
+    }
+
+    @Test
+    void saveNameTooLong() throws Exception {
+        // Given
+        BeerDTO beerDTO = BeerDTO.builder().beerName("a".repeat(51))
+                .beerStyle(BeerStyle.WHEAT).price(BigDecimal.TEN).upc("111").build();
+        given(beerRepository.save(any(Beer.class))).willThrow(ConstraintViolationException.class);
+        
+        // When
+        assertThrows(ConstraintViolationException.class,
+                // Then
+                () -> beerService.save(beerDTO));
     }
 
     @Test

@@ -9,15 +9,14 @@ import guru.springframework.spring6restmvc.repository.BeerRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,6 +84,17 @@ class BeerControllerIT {
         assertEquals(beerDTO.getUpc(), savedBeerDTO.getUpc());
         assertEquals(BeerController.PATH + "/" + savedBeerDTO.getId().toString(), response.getHeader("Location"));
         assertNotNull(beerRepository.findById(savedBeerDTO.getId()));
+    }
+
+    @Test
+    void saveBeerNameTooLong() {
+        BeerDTO beerDTO = BeerDTO.builder().beerName("Test Beer with a very long name that should not be saved to the database")
+                .beerStyle(BeerStyle.IPA).upc("1234567890123").price(BigDecimal.TEN)
+                .quantityOnHand(100)
+                .build();
+        assertThrows(TransactionSystemException.class, () -> {
+            beerController.save(beerDTO, new MockHttpServletResponse()); // should throw exception as beerName is too long
+        });
     }
 
     @Rollback
