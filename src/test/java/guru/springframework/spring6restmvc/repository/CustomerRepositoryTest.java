@@ -1,12 +1,13 @@
 package guru.springframework.spring6restmvc.repository;
 
 import guru.springframework.spring6restmvc.domain.Customer;
-import lombok.AllArgsConstructor;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.annotation.Rollback;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author john
@@ -17,6 +18,8 @@ class CustomerRepositoryTest {
     @Autowired
     CustomerRepository customerRepository;
 
+    @Rollback
+    @Transactional
     @Test
     void saveCustomer() {
         Customer customer = Customer.builder().name("John").build();

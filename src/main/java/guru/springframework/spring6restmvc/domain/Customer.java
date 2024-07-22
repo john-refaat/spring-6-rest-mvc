@@ -2,6 +2,8 @@ package guru.springframework.spring6restmvc.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -23,9 +25,15 @@ import java.util.UUID;
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(length = 100, columnDefinition = "varchar(100)", nullable = false, updatable = false)
     private UUID id;
     private String name;
+
+    private String email;
+
     @Version
+    @Column(columnDefinition = "SMALLINT")
     private Integer version;
 
     @CreatedDate
@@ -33,4 +41,5 @@ public class Customer {
 
     @LastModifiedDate
     private LocalDateTime lastModifiedDate;
+
 }

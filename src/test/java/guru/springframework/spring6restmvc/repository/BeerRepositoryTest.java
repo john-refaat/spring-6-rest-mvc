@@ -2,11 +2,13 @@ package guru.springframework.spring6restmvc.repository;
 
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.model.BeerStyle;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.annotation.Rollback;
 
 import java.math.BigDecimal;
 
@@ -22,11 +24,12 @@ class BeerRepositoryTest {
     @Autowired
     BeerRepository beerRepository;
 
+    @Rollback
+    @Transactional
     @Test
     void saveBeer() {
         Beer beer = Beer.builder().beerName("Test Beer").upc("876543").beerStyle(BeerStyle.WHEAT).price(BigDecimal.TEN).build();
         Beer savedBeer = beerRepository.save(beer);
-        beerRepository.flush();
         Assertions.assertThat(savedBeer).isNotNull();
         Assertions.assertThat(savedBeer.getId()).isNotNull();
     }

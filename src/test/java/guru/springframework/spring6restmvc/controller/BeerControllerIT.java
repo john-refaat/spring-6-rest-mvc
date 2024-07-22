@@ -47,7 +47,7 @@ class BeerControllerIT {
     void listBeers() {
         List<BeerDTO> beerDTOS = beerController.listBeers();
         assertNotNull(beerDTOS);
-        assertEquals(3, beerDTOS.size());
+        assertEquals(beerRepository.count(), beerDTOS.size());
         assertNotNull(beerDTOS.getFirst());
         assertNotNull(beerDTOS.getLast());
     }
@@ -147,9 +147,10 @@ class BeerControllerIT {
     @Test
     void deleteBeer() {
         UUID beerId = beerRepository.findAll().getFirst().getId();
+        long count = beerRepository.count();
         beerController.deleteCustomer(beerId);
         assertNull(beerRepository.findById(beerId).orElse(null));
-        assertEquals(2, beerRepository.count());
+        assertEquals(count - 1, beerRepository.count());
     }
 
     @Rollback
