@@ -2,9 +2,11 @@ package guru.springframework.spring6restmvc.repository;
 
 import guru.springframework.spring6restmvc.domain.Customer;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,8 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author john
  * @since 10/07/2024
  */
-@DataJpaTest
+@SpringBootTest
 class CustomerRepositoryTest {
+
     @Autowired
     CustomerRepository customerRepository;
 
@@ -22,7 +25,7 @@ class CustomerRepositoryTest {
     @Transactional
     @Test
     void saveCustomer() {
-        Customer customer = Customer.builder().name("John").build();
+        Customer customer = Customer.builder().name("Marina").build();
         Customer savedCustomer = customerRepository.save(customer);
         assertNotNull(savedCustomer);
         assertNotNull(savedCustomer.getId());

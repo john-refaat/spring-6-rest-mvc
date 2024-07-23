@@ -8,7 +8,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.math.BigDecimal;
 
@@ -18,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author john
  * @since 10/07/2024
  */
-@DataJpaTest
+@SpringBootTest
 class BeerRepositoryTest {
 
     @Autowired
@@ -37,7 +39,7 @@ class BeerRepositoryTest {
     @Test
     void saveBeerWithoutName() {
         Beer beer = Beer.builder().upc("876543").beerStyle(BeerStyle.WHEAT).price(BigDecimal.TEN).build();
-        assertThrows(ConstraintViolationException.class, () -> {
+        assertThrows(TransactionSystemException.class, () -> {
             beerRepository.save(beer);
             beerRepository.flush();
         });
@@ -47,7 +49,7 @@ class BeerRepositoryTest {
     void saveBeerNameTooLong() {
      Beer beer = Beer.builder().beerName("This is a very long beer name that should not be saved")
          .upc("876543").beerStyle(BeerStyle.WHEAT).price(BigDecimal.TEN).build();
-     assertThrows(ConstraintViolationException.class, () -> {
+     assertThrows(TransactionSystemException.class, () -> {
          beerRepository.save(beer);
          beerRepository.flush();
      });
