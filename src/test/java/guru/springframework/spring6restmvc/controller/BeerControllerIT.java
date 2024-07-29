@@ -8,6 +8,7 @@ import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.transaction.TransactionSystemException;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class BeerControllerIT {
 
+    public static final String RISE = "rise";
     @Autowired
     BeerController beerController;
 
@@ -45,11 +48,20 @@ class BeerControllerIT {
 
     @Test
     void listBeers() {
-        List<BeerDTO> beerDTOS = beerController.listBeers();
+        List<BeerDTO> beerDTOS = beerController.listBeers(null, null);
         assertNotNull(beerDTOS);
         assertEquals(beerRepository.count(), beerDTOS.size());
         assertNotNull(beerDTOS.getFirst());
         assertNotNull(beerDTOS.getLast());
+    }
+
+    @Test
+    void listBeersByBeerName() {
+        List<BeerDTO> beerDTOS = beerController.listBeers(RISE, null);
+        assertNotNull(beerDTOS);
+        assertEquals(7, beerDTOS.size());
+        Assertions.assertThat(beerDTOS.getFirst().getBeerName()).containsIgnoringCase(RISE);
+        Assertions.assertThat(beerDTOS.getLast().getBeerName()).containsIgnoringCase(RISE);
     }
 
     @Test

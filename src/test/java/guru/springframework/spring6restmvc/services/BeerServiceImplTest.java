@@ -33,6 +33,7 @@ class BeerServiceImplTest {
 
     public static final Beer beer1 = Beer.builder().id(UUID.randomUUID()).beerName("My Beer").build();
     public static final Beer beer2 = Beer.builder().id(UUID.randomUUID()).beerName("Stella").build();
+    public static final String RISE = "rise";
     private BeerServiceImpl beerService;
     @Mock
     private BeerRepository beerRepository;
@@ -49,12 +50,62 @@ class BeerServiceImplTest {
         given(beerRepository.findAll()).willReturn(beerDTOList);
 
         // When
-        List<BeerDTO> beerDTOS = beerService.listBeers();
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.empty(), Optional.empty());
 
         // Then
         Assertions.assertThat(beerDTOS.size()).isEqualTo(2);
         Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
         Assertions.assertThat(beerDTOS.get(1).getBeerName()).isEqualTo(beer2.getBeerName());
+    }
+
+    @Test
+    void listBeersByBeerName() {
+        // Given
+        given(beerRepository.findByBeerNameLikeIgnoreCase(anyString())).willReturn(List.of(beer1));
+
+        // When
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.of(RISE), Optional.empty());
+
+        // Then
+        Assertions.assertThat(beerDTOS.size()).isEqualTo(1);
+        Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(beerRepository).findByBeerNameLikeIgnoreCase(captor.capture());
+        Assertions.assertThat(captor.getValue()).isEqualTo("%"+RISE+"%");
+    }
+
+    @Test
+    void listBeersByBeerStyle() {
+        // Given
+        given(beerRepository.findByBeerStyle(any(BeerStyle.class))).willReturn(List.of(beer1));
+
+        // When
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.empty(), Optional.of(BeerStyle.WHEAT));
+
+        // Then
+        Assertions.assertThat(beerDTOS.size()).isEqualTo(1);
+        Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
+        ArgumentCaptor<BeerStyle> captor = ArgumentCaptor.forClass(BeerStyle.class);
+        verify(beerRepository).findByBeerStyle(captor.capture());
+        Assertions.assertThat(captor.getValue()).isEqualTo(BeerStyle.WHEAT);
+    }
+
+    @Test
+    void listBeersByBeerNameAndBeerStyle() {
+        // Given
+        given(beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle(anyString(), any(BeerStyle.class))).willReturn(List.of(beer2));
+
+        // When
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.of(RISE), Optional.of(BeerStyle.WHEAT));
+
+        // Then
+        Assertions.assertThat(beerDTOS.size()).isEqualTo(1);
+        Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer2.getBeerName());
+        ArgumentCaptor<String> captorName = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<BeerStyle> captorStyle = ArgumentCaptor.forClass(BeerStyle.class);
+        verify(beerRepository).findByBeerNameLikeIgnoreCaseAndBeerStyle(captorName.capture(), captorStyle.capture());
+        Assertions.assertThat(captorName.getValue()).isEqualTo("%"+RISE+"%");
+        Assertions.assertThat(captorStyle.getValue()).isEqualTo(BeerStyle.WHEAT);
     }
 
     @Test

@@ -1,6 +1,5 @@
 package guru.springframework.spring6restmvc.bootstrap;
 
-import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.model.BeerCSVRecord;
 import guru.springframework.spring6restmvc.model.BeerDTO;
 import guru.springframework.spring6restmvc.model.BeerStyle;
@@ -9,7 +8,6 @@ import guru.springframework.spring6restmvc.services.BeerCSVService;
 import guru.springframework.spring6restmvc.services.BeerService;
 import guru.springframework.spring6restmvc.services.CustomerService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.CommandLineRunner;
@@ -21,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -126,6 +125,7 @@ public class DataBootstrap implements CommandLineRunner {
         beerService.save(beer1);
         beerService.save(beer2);
         beerService.save(beer3);
-        log.info("Beers loaded: {}", beerService.listBeers().size());
+        log.info("Beers loaded: {}", beerService.listBeers(Optional.empty(), Optional.empty()).size());
+
     }
 }

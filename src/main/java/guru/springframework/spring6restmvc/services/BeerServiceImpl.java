@@ -4,6 +4,7 @@ import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -32,10 +32,22 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public List<BeerDTO> listBeers() {
+    public List<BeerDTO> listBeers(Optional<String> beerName, Optional<BeerStyle> beerStyle) {
         log.info("Getting beer list");
-        return beerRepository.findAll().stream().map(beerMapper::beerToBeerDTO)
-                .collect(Collectors.toList());
+        List<Beer> beerList = null;
+        if (beerName.isPresent() && beerStyle.isEmpty())
+            beerList = beerRepository.findByBeerNameLikeIgnoreCase("%"+beerName.get()+"%");
+
+        if (beerName.isEmpty() && beerStyle.isPresent())
+            beerList = beerRepository.findByBeerStyle(beerStyle.get());
+
+        if (beerName.isPresent() && beerStyle.isPresent())
+            beerList = beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle("%"+beerName.get()+"%", beerStyle.get());
+
+        if (beerName.isEmpty() && beerStyle.isEmpty())
+            beerList = beerRepository.findAll();
+
+        return beerList.stream().map(beerMapper::beerToBeerDTO).collect(Collectors.toList());
     }
 
     @Override

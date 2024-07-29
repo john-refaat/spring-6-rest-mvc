@@ -13,6 +13,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.TransactionSystemException;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,6 +26,18 @@ class BeerRepositoryTest {
 
     @Autowired
     BeerRepository beerRepository;
+
+    @Test
+    void listBeer() {
+        List<Beer> beers = beerRepository.findAll();
+        Assertions.assertThat(beers).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    void findBeerByNameLike() throws Exception {
+        List<Beer> beers = beerRepository.findByBeerNameLikeIgnoreCase("%rise%");
+        Assertions.assertThat(beers.size()).isEqualTo(7);
+    }
 
     @Rollback
     @Transactional
@@ -51,7 +64,7 @@ class BeerRepositoryTest {
          .upc("876543").beerStyle(BeerStyle.WHEAT).price(BigDecimal.TEN).build();
      assertThrows(TransactionSystemException.class, () -> {
          beerRepository.save(beer);
-         beerRepository.flush();
+         beerRepository.flush();    
      });
 
     }
