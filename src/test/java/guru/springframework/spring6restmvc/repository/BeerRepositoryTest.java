@@ -1,13 +1,12 @@
 package guru.springframework.spring6restmvc.repository;
 
 import guru.springframework.spring6restmvc.domain.Beer;
+import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.TransactionSystemException;
@@ -37,6 +36,18 @@ class BeerRepositoryTest {
     void findBeerByNameLike() throws Exception {
         List<Beer> beers = beerRepository.findByBeerNameLikeIgnoreCase("%rise%");
         Assertions.assertThat(beers.size()).isEqualTo(7);
+    }
+
+    @Test
+    void findBeerBySearchCriteria() throws Exception {
+        List<Beer> beers = beerRepository.findBySearchCriteria(BeerSearchCriteria.builder().name("rise")
+                .priceMin(BigDecimal.valueOf(11)).priceMax(BigDecimal.valueOf(12)).build());
+
+        Assertions.assertThat(beers).isNotNull();
+        Assertions.assertThat(beers).hasSizeGreaterThan(0);
+        Assertions.assertThat(beers).allMatch(beer -> beer.getBeerName().toLowerCase().contains("rise"));
+        Assertions.assertThat(beers).allMatch(beer -> beer.getPrice().compareTo(BigDecimal.valueOf(11)) >= 0);
+        Assertions.assertThat(beers).allMatch(beer -> beer.getPrice().compareTo(BigDecimal.valueOf(12)) <= 0);
     }
 
     @Rollback

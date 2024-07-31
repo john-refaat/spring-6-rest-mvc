@@ -4,6 +4,7 @@ import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,12 @@ public class BeerServiceImpl implements BeerService {
             beerList = beerRepository.findAll();
 
         return beerList.stream().map(beerMapper::beerToBeerDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BeerDTO> searchBeers(BeerSearchCriteria criteria) {
+        log.info("Search beer by criteria - in service: {}", criteria);
+        return beerRepository.findBySearchCriteria(criteria).stream().map(beerMapper::beerToBeerDTO).collect(Collectors.toList());
     }
 
     @Override

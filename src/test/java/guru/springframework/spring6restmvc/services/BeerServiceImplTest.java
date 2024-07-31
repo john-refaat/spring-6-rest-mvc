@@ -3,6 +3,7 @@ package guru.springframework.spring6restmvc.services;
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import jakarta.validation.ConstraintViolationException;
@@ -106,6 +107,24 @@ class BeerServiceImplTest {
         verify(beerRepository).findByBeerNameLikeIgnoreCaseAndBeerStyle(captorName.capture(), captorStyle.capture());
         Assertions.assertThat(captorName.getValue()).isEqualTo("%"+RISE+"%");
         Assertions.assertThat(captorStyle.getValue()).isEqualTo(BeerStyle.WHEAT);
+    }
+
+    @Test
+    void searchBeers() {
+        // Given
+        Beer beer = Beer.builder().beerName("My Beer").build();
+        given(beerRepository.findBySearchCriteria(any(BeerSearchCriteria.class))).willReturn(List.of(beer));
+
+        // When
+        List<BeerDTO> foundBeers = beerService.searchBeers(BeerSearchCriteria.builder().name("my").build());
+
+        // Then
+        Assertions.assertThat(foundBeers.size()).isEqualTo(1);
+        Assertions.assertThat(foundBeers.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
+        ArgumentCaptor<BeerSearchCriteria> captor = ArgumentCaptor.forClass(BeerSearchCriteria.class);
+        verify(beerRepository, times(1)).findBySearchCriteria(captor.capture());
+        Assertions.assertThat(captor.getValue()).isNotNull();
+        Assertions.assertThat(captor.getValue().getName()).isEqualTo("my");
     }
 
     @Test

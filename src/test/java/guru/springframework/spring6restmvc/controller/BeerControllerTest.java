@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.services.BeerService;
 import org.assertj.core.api.Assertions;
@@ -152,6 +153,25 @@ class BeerControllerTest {
         //then
         Mockito.verify(beerService, Mockito.times(1)).getById(fooBeer.getId());
     }
+
+    @Test
+    void search() throws Exception {
+        //given
+        BeerSearchCriteria criteria = BeerSearchCriteria.builder().name("foo").build();
+        Mockito.when(beerService.searchBeers(any(BeerSearchCriteria.class))).thenReturn(List.of(fooBeer));
+
+        //when
+        mockMvc.perform(MockMvcRequestBuilders.post(BeerController.PATH + "/search")
+               .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+               .content(asJsonString(criteria)))
+               .andExpect(MockMvcResultMatchers.status().isOk())
+               .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(1))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.[0].beerName").value("foo"));
+
+        //then
+        Mockito.verify(beerService, Mockito.times(1)).searchBeers(criteria);
+    }
+
 
     @Test
     void save() throws Exception {
@@ -389,5 +409,11 @@ class BeerControllerTest {
     private String asJsonString(BeerDTO beer) throws JsonProcessingException {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         return ow.writeValueAsString(beer);
+    }
+
+
+    private String asJsonString(BeerSearchCriteria criteria) throws JsonProcessingException {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        return ow.writeValueAsString(criteria);
     }
 }

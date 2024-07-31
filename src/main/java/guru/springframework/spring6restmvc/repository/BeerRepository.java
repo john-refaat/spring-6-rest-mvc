@@ -11,7 +11,7 @@ import java.util.UUID;
  * @author john
  * @since 10/07/2024
  */
-public interface BeerRepository extends JpaRepository<Beer, UUID> {
+public interface BeerRepository extends JpaRepository<Beer, UUID>, BeerRepositoryCustom {
     List<Beer> findByBeerNameLikeIgnoreCase(String name);
     List<Beer> findByBeerStyle(BeerStyle beerStyle);
     List<Beer> findByBeerNameLikeIgnoreCaseAndBeerStyle(String beerName, BeerStyle beerStyle);
