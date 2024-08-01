@@ -8,6 +8,9 @@ import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,22 +36,24 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public List<BeerDTO> listBeers(Optional<String> beerName, Optional<BeerStyle> beerStyle) {
+    public Page<BeerDTO> listBeers(Optional<String> beerName, Optional<BeerStyle> beerStyle, Optional<Integer> pageNumber, Optional<Integer> pageSize) {
         log.info("Getting beer list");
-        List<Beer> beerList = null;
+
+        PageRequest pageRequest = PageRequest.of(pageNumber.orElse(1) - 1, pageSize.orElse(5), Sort.by(Sort.Order.asc("beerName")));
+        Page<Beer> beerPage = null;
         if (beerName.isPresent() && beerStyle.isEmpty())
-            beerList = beerRepository.findByBeerNameLikeIgnoreCase("%"+beerName.get()+"%");
+            beerPage = beerRepository.findByBeerNameLikeIgnoreCase("%"+beerName.get()+"%", pageRequest);
 
         if (beerName.isEmpty() && beerStyle.isPresent())
-            beerList = beerRepository.findByBeerStyle(beerStyle.get());
+            beerPage = beerRepository.findByBeerStyle(beerStyle.get(), pageRequest);
 
         if (beerName.isPresent() && beerStyle.isPresent())
-            beerList = beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle("%"+beerName.get()+"%", beerStyle.get());
+            beerPage = beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle("%"+beerName.get()+"%", beerStyle.get(), pageRequest);
 
         if (beerName.isEmpty() && beerStyle.isEmpty())
-            beerList = beerRepository.findAll();
+            beerPage = beerRepository.findAll(pageRequest);
 
-        return beerList.stream().map(beerMapper::beerToBeerDTO).collect(Collectors.toList());
+        return beerPage.map(beerMapper::beerToBeerDTO);
     }
 
     @Override

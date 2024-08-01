@@ -7,13 +7,13 @@ import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.services.BeerService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author john
@@ -31,10 +31,23 @@ public class BeerController {
     }
 
     @GetMapping({"/", ""})
-    public List<BeerDTO> listBeers(@RequestParam(required = false) String beerName,
-                                   @RequestParam(required = false)BeerStyle beerStyle) {
+    public Map<String, Object> listBeers(@RequestParam(required = false) String beerName,
+                                         @RequestParam(required = false) BeerStyle beerStyle,
+                                         @RequestParam(required = false) Integer pageNumber,
+                                         @RequestParam(required = false) Integer pageSize) {
         log.debug("Search beers - in controller");
-        return beerService.listBeers(Optional.ofNullable(beerName), Optional.ofNullable(beerStyle));
+        Map<String, Object> result = new HashMap<>();
+        Page<BeerDTO> page = beerService.listBeers(Optional.ofNullable(beerName), Optional.ofNullable(beerStyle), Optional.ofNullable(pageNumber), Optional.ofNullable(pageSize));
+
+        result.put("totalPages", page.getTotalPages());
+        result.put("totalElements", page.getTotalElements());
+        result.put("pageNumber", page.getNumber());
+        result.put("pageSize", page.getSize());
+        result.put("sorted", page.getSort().isSorted());
+        result.put("first", page.isFirst());
+        result.put("last", page.isLast());
+        result.put("content", page.getContent());
+        return result;
     }
 
     @PostMapping({"/search"})

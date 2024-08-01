@@ -14,6 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,10 +52,10 @@ class BeerServiceImplTest {
     void listBeers() {
         // Given
         List<Beer> beerDTOList = List.of(beer1, beer2);
-        given(beerRepository.findAll()).willReturn(beerDTOList);
+        given(beerRepository.findAll(any(PageRequest.class))).willReturn(new PageImpl<>(beerDTOList));
 
         // When
-        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.empty(), Optional.empty());
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()).getContent();
 
         // Then
         Assertions.assertThat(beerDTOS.size()).isEqualTo(2);
@@ -62,49 +66,50 @@ class BeerServiceImplTest {
     @Test
     void listBeersByBeerName() {
         // Given
-        given(beerRepository.findByBeerNameLikeIgnoreCase(anyString())).willReturn(List.of(beer1));
+        Page<Beer> page = new PageImpl<Beer>(List.of(beer1));
+        given(beerRepository.findByBeerNameLikeIgnoreCase(anyString(), any())).willReturn(page);
 
         // When
-        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.of(RISE), Optional.empty());
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.of(RISE), Optional.empty(), Optional.empty(), Optional.empty()).getContent();
 
         // Then
         Assertions.assertThat(beerDTOS.size()).isEqualTo(1);
         Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(beerRepository).findByBeerNameLikeIgnoreCase(captor.capture());
+        verify(beerRepository).findByBeerNameLikeIgnoreCase(captor.capture(), any());
         Assertions.assertThat(captor.getValue()).isEqualTo("%"+RISE+"%");
     }
 
     @Test
     void listBeersByBeerStyle() {
         // Given
-        given(beerRepository.findByBeerStyle(any(BeerStyle.class))).willReturn(List.of(beer1));
+        given(beerRepository.findByBeerStyle(any(BeerStyle.class), any())).willReturn(new PageImpl<>(List.of(beer1)));
 
         // When
-        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.empty(), Optional.of(BeerStyle.WHEAT));
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.empty(), Optional.of(BeerStyle.WHEAT), Optional.empty(), Optional.empty()).getContent();
 
         // Then
         Assertions.assertThat(beerDTOS.size()).isEqualTo(1);
         Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
         ArgumentCaptor<BeerStyle> captor = ArgumentCaptor.forClass(BeerStyle.class);
-        verify(beerRepository).findByBeerStyle(captor.capture());
+        verify(beerRepository).findByBeerStyle(captor.capture(), any(Pageable.class));
         Assertions.assertThat(captor.getValue()).isEqualTo(BeerStyle.WHEAT);
     }
 
     @Test
     void listBeersByBeerNameAndBeerStyle() {
         // Given
-        given(beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle(anyString(), any(BeerStyle.class))).willReturn(List.of(beer2));
+        given(beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle(anyString(), any(BeerStyle.class), any(Pageable.class))).willReturn(new PageImpl<>(List.of(beer2)));
 
         // When
-        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.of(RISE), Optional.of(BeerStyle.WHEAT));
+        List<BeerDTO> beerDTOS = beerService.listBeers(Optional.of(RISE), Optional.of(BeerStyle.WHEAT), Optional.empty(), Optional.empty()).getContent();
 
         // Then
         Assertions.assertThat(beerDTOS.size()).isEqualTo(1);
         Assertions.assertThat(beerDTOS.get(0).getBeerName()).isEqualTo(beer2.getBeerName());
         ArgumentCaptor<String> captorName = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<BeerStyle> captorStyle = ArgumentCaptor.forClass(BeerStyle.class);
-        verify(beerRepository).findByBeerNameLikeIgnoreCaseAndBeerStyle(captorName.capture(), captorStyle.capture());
+        verify(beerRepository).findByBeerNameLikeIgnoreCaseAndBeerStyle(captorName.capture(), captorStyle.capture(), any(Pageable.class));
         Assertions.assertThat(captorName.getValue()).isEqualTo("%"+RISE+"%");
         Assertions.assertThat(captorStyle.getValue()).isEqualTo(BeerStyle.WHEAT);
     }
@@ -120,7 +125,7 @@ class BeerServiceImplTest {
 
         // Then
         Assertions.assertThat(foundBeers.size()).isEqualTo(1);
-        Assertions.assertThat(foundBeers.get(0).getBeerName()).isEqualTo(beer1.getBeerName());
+        Assertions.assertThat(foundBeers.get(0).getBeerName()).isEqualTo(beer.getBeerName());
         ArgumentCaptor<BeerSearchCriteria> captor = ArgumentCaptor.forClass(BeerSearchCriteria.class);
         verify(beerRepository, times(1)).findBySearchCriteria(captor.capture());
         Assertions.assertThat(captor.getValue()).isNotNull();

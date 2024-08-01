@@ -125,7 +125,7 @@ public class DataBootstrap implements CommandLineRunner {
         beerService.save(beer1);
         beerService.save(beer2);
         beerService.save(beer3);
-        log.info("Beers loaded: {}", beerService.listBeers(Optional.empty(), Optional.empty()).size());
+        log.info("Beers loaded: {}", beerService.listBeers(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()).getContent().size());
 
     }
 }

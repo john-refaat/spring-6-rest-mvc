@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.TransactionSystemException;
 
@@ -34,8 +35,8 @@ class BeerRepositoryTest {
 
     @Test
     void findBeerByNameLike() throws Exception {
-        List<Beer> beers = beerRepository.findByBeerNameLikeIgnoreCase("%rise%");
-        Assertions.assertThat(beers.size()).isEqualTo(7);
+        Page<Beer> beers = beerRepository.findByBeerNameLikeIgnoreCase("%rise%", null);
+        Assertions.assertThat(beers.getContent().size()).isEqualTo(7);
     }
 
     @Test

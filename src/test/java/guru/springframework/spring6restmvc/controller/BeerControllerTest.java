@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -27,8 +28,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 
 /**
  * @author john
@@ -62,19 +63,19 @@ class BeerControllerTest {
     @Test
     void listBeers() throws Exception {
         //given
-        Mockito.when(beerService.listBeers(any(), any())).thenReturn(List.of(fooBeer, barBeer));
+        given(beerService.listBeers(any(), any(), any(Optional.class), any(Optional.class))).willReturn(new PageImpl<>(List.of(fooBeer, barBeer)));
 
         //when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[0].beerName").value("foo"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[1].beerName").value("bar"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].beerName").value("foo"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].beerName").value("bar"));
 
         //then
         ArgumentCaptor<Optional<String>> captor1 = ArgumentCaptor.forClass(Optional.class);
         ArgumentCaptor<Optional<BeerStyle>> captor2 = ArgumentCaptor.forClass(Optional.class);
-        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor1.capture(), captor2.capture());
+        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor1.capture(), captor2.capture(), any(), any());
         assertThat(captor1.getValue()).isEmpty();
         assertThat(captor2.getValue()).isEmpty();
     }
@@ -82,18 +83,18 @@ class BeerControllerTest {
     @Test
     void listBeersByName() throws Exception {
         //given
-        Mockito.when(beerService.listBeers(any(), any())).thenReturn(List.of(fooBeer));
+        Mockito.when(beerService.listBeers(any(), any(), any(), any())).thenReturn(new PageImpl<>(List.of(fooBeer)));
 
         //when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "?beerName=foo"))
                .andExpect(MockMvcResultMatchers.status().isOk())
-               .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(1))
-               .andExpect(MockMvcResultMatchers.jsonPath("$.[0].beerName").value("foo"));
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].beerName").value("foo"));
 
         //then
         ArgumentCaptor<Optional<String>> captor = ArgumentCaptor.forClass(Optional.class);
         ArgumentCaptor<Optional<BeerStyle>> captor2 = ArgumentCaptor.forClass(Optional.class);
-        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor.capture(), captor2.capture());
+        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor.capture(), captor2.capture(), any(), any());
         assertThat(captor.getValue()).isNotEmpty();
         assertThat(captor.getValue().get()).isEqualTo("foo");
         assertThat(captor2.getValue()).isEmpty();
@@ -102,18 +103,18 @@ class BeerControllerTest {
     @Test
     void listBeersByStyle() throws Exception {
         //given
-        Mockito.when(beerService.listBeers(any(), any(Optional.class))).thenReturn(List.of(fooBeer));
+        Mockito.when(beerService.listBeers(any(), any(), any(), any())).thenReturn(new PageImpl(List.of(fooBeer)));
 
         //when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "?beerStyle=WHEAT"))
                .andExpect(MockMvcResultMatchers.status().isOk())
-               .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(1))
-               .andExpect(MockMvcResultMatchers.jsonPath("$.[0].beerName").value("foo"));
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].beerName").value("foo"));
 
         //then
         ArgumentCaptor<Optional<String>> captor1 = ArgumentCaptor.forClass(Optional.class);
         ArgumentCaptor<Optional<BeerStyle>> captor2 = ArgumentCaptor.forClass(Optional.class);
-        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor1.capture(), captor2.capture());
+        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor1.capture(), captor2.capture(), any(), any());
         assertThat(captor1.getValue()).isEmpty();
         assertThat(captor2.getValue()).isPresent();
         assertThat(captor2.getValue().get()).isEqualTo(BeerStyle.WHEAT);
@@ -122,18 +123,18 @@ class BeerControllerTest {
     @Test
     void listBeersByNameAndStyle() throws Exception {
         //given
-        Mockito.when(beerService.listBeers(any(Optional.class), any(Optional.class))).thenReturn(List.of(fooBeer));
+        Mockito.when(beerService.listBeers(any(Optional.class), any(Optional.class), any(), any())).thenReturn(new PageImpl(List.of(fooBeer)));
 
         //when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "?beerName=foo&beerStyle=WHEAT"))
                .andExpect(MockMvcResultMatchers.status().isOk())
-               .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(1))
-               .andExpect(MockMvcResultMatchers.jsonPath("$.[0].beerName").value("foo"));
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.contentjo.[0].beerName").value("foo"));
 
         //then
         ArgumentCaptor<Optional<String>> captor1 = ArgumentCaptor.forClass(Optional.class);
         ArgumentCaptor<Optional<BeerStyle>> captor2 = ArgumentCaptor.forClass(Optional.class);
-        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor1.capture(), captor2.capture());
+        Mockito.verify(beerService, Mockito.times(1)).listBeers(captor1.capture(), captor2.capture(), any(), any());
         assertThat(captor1.getValue()).isPresent();
         assertThat(captor1.getValue().get()).isEqualTo("foo");
         assertThat(captor2.getValue()).isPresent();
@@ -143,7 +144,7 @@ class BeerControllerTest {
     @Test
     void getById() throws Exception {
         //given
-        BDDMockito.given(beerService.getById(any(UUID.class))).willReturn(Optional.of(fooBeer));
+        given(beerService.getById(any(UUID.class))).willReturn(Optional.of(fooBeer));
 
         //when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "/" + fooBeer.getId()))
@@ -176,7 +177,7 @@ class BeerControllerTest {
     @Test
     void save() throws Exception {
         // given
-        BDDMockito.given(beerService.save(any(BeerDTO.class))).willReturn(fooBeer);
+        given(beerService.save(any(BeerDTO.class))).willReturn(fooBeer);
         BeerDTO savedBeer = BeerDTO.builder().beerName(fooBeer.getBeerName()).beerStyle(fooBeer.getBeerStyle())
                 .upc(fooBeer.getUpc()).price(fooBeer.getPrice()).build();
 
@@ -229,7 +230,7 @@ class BeerControllerTest {
     void createBeerWithNameTooLong() throws Exception {
         // given
         BeerDTO newBeerDTO = BeerDTO.builder().beerName("a".repeat(256)).upc("12345676").beerStyle(BeerStyle.WHEAT).price(BigDecimal.TEN).build();
-        BDDMockito.given(beerService.save(any(BeerDTO.class))).willThrow(TransactionSystemException.class);
+        given(beerService.save(any(BeerDTO.class))).willThrow(TransactionSystemException.class);
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.post(BeerController.PATH)
@@ -243,7 +244,7 @@ class BeerControllerTest {
         // given
         BeerDTO updatedBeer = fooBeer;
         updatedBeer.setBeerName("updated");
-        BDDMockito.given(beerService.update(any(UUID.class), any(BeerDTO.class)))
+        given(beerService.update(any(UUID.class), any(BeerDTO.class)))
                 .willReturn(Optional.of(updatedBeer));
 
         // when
@@ -334,7 +335,7 @@ class BeerControllerTest {
     void updateNotFound() throws Exception {
         // given
         fooBeer.setId(UUID.randomUUID());
-        BDDMockito.given(beerService.update(any(UUID.class), any(BeerDTO.class)))
+        given(beerService.update(any(UUID.class), any(BeerDTO.class)))
                 .willReturn(Optional.empty());
 
         // when
@@ -370,7 +371,7 @@ class BeerControllerTest {
     @Test
     void deleteBeer() throws Exception {
         // given
-        BDDMockito.given(beerService.deleteById(any(UUID.class))).willReturn(true);
+        given(beerService.deleteById(any(UUID.class))).willReturn(true);
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.delete(BeerController.PATH + "/" + fooBeer.getId()))
@@ -383,7 +384,7 @@ class BeerControllerTest {
     @Test
     void deleteBeerNotFound() throws Exception {
         // given
-        BDDMockito.given(beerService.deleteById(any(UUID.class))).willReturn(false);
+        given(beerService.deleteById(any(UUID.class))).willReturn(false);
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.delete(BeerController.PATH + "/" + UUID.randomUUID()))
@@ -396,7 +397,7 @@ class BeerControllerTest {
     @Test
     void getBeerbyIdNotFound() throws Exception {
         // given
-        BDDMockito.given(beerService.getById(any(UUID.class))).willReturn(Optional.empty());
+        given(beerService.getById(any(UUID.class))).willReturn(Optional.empty());
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "/" + UUID.randomUUID()))
