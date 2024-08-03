@@ -10,6 +10,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -20,8 +22,8 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(exclude = {"beerOrders"})
+@ToString(exclude = {"beerOrders"})
 @Builder
 @Entity
 public class Customer {
@@ -43,5 +45,9 @@ public class Customer {
 
     @UpdateTimestamp
     private LocalDateTime lastModifiedDate;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "customer", fetch = FetchType.EAGER)
+    private Set<BeerOrder> beerOrders = new HashSet<>();
 
 }

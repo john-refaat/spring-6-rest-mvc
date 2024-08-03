@@ -1,5 +1,7 @@
 package guru.springframework.spring6restmvc.repository;
 
+import guru.springframework.spring6restmvc.domain.BeerOrder;
+import guru.springframework.spring6restmvc.domain.BeerOrderLine;
 import guru.springframework.spring6restmvc.domain.Customer;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -30,4 +34,16 @@ class CustomerRepositoryTest {
         assertNotNull(savedCustomer);
         assertNotNull(savedCustomer.getId());
     }
+
+    @Rollback
+    @Transactional
+    @Test
+    void findCustomerById() {
+        Customer customer = customerRepository.findAll().get(0);
+        assertNotNull(customer);
+        assertNotNull(customer.getId());
+        Customer foundCustomer = customerRepository.findById(customer.getId()).orElse(null);
+        assertNotNull(foundCustomer);
+    }
+
 }
