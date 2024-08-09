@@ -13,6 +13,8 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -53,9 +55,24 @@ public class Beer {
     @NotNull
     private BigDecimal price;
 
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(name= "beer_category", joinColumns = @JoinColumn(name = "beer_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+    private Set<Category> categories = new HashSet<>();
+
     @CreationTimestamp
     private LocalDateTime createdDate;
 
     @UpdateTimestamp
     private LocalDateTime updateDate;
+
+    public void addCategory(Category category) {
+        categories.add(category);
+        category.getBeers().add(this);
+    }
+
+    public void removeCategory(Category category) {
+        categories.remove(category);
+        category.getBeers().remove(this);
+    }
 }

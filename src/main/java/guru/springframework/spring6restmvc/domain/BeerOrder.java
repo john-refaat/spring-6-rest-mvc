@@ -24,13 +24,14 @@ import java.util.UUID;
 @Entity
 public class BeerOrder {
 
-    public BeerOrder(UUID id, Integer version, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Customer customer, Set<BeerOrderLine> orderLines) {
+    public BeerOrder(UUID id, Integer version, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Customer customer, Set<BeerOrderLine> orderLines, BeerOrderShipment beerOrderShipment) {
         this.id = id;
         this.version = version;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
         this.setCustomer(customer);
         this.orderLines = orderLines;
+        this.setBeerOrderShipment(beerOrderShipment);
     }
 
     @Id
@@ -56,8 +57,16 @@ public class BeerOrder {
     @OneToMany(mappedBy = "beerOrder", cascade = CascadeType.PERSIST)
     private Set<BeerOrderLine> orderLines;
 
+    @OneToOne(cascade = CascadeType.PERSIST)
+    private BeerOrderShipment beerOrderShipment;
+
     public void setCustomer(Customer customer) {
         this.customer = customer;
         customer.getBeerOrders().add(this);
+    }
+
+    public void setBeerOrderShipment(BeerOrderShipment beerOrderShipment) {
+        this.beerOrderShipment = beerOrderShipment;
+        beerOrderShipment.setBeerOrder(this);
     }
 }

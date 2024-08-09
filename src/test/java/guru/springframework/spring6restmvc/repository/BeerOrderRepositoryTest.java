@@ -1,9 +1,6 @@
 package guru.springframework.spring6restmvc.repository;
 
-import guru.springframework.spring6restmvc.domain.Beer;
-import guru.springframework.spring6restmvc.domain.BeerOrder;
-import guru.springframework.spring6restmvc.domain.BeerOrderLine;
-import guru.springframework.spring6restmvc.domain.Customer;
+import guru.springframework.spring6restmvc.domain.*;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +62,27 @@ class BeerOrderRepositoryTest {
         BeerOrderLine orderLine = order.getOrderLines().iterator().next();
         assertNotNull(orderLine);
         assertNotNull(orderLine.getId());
+    }
+
+    @Rollback
+    @Transactional
+    @Test
+    void createBeerOrderWithShipment() {
+        BeerOrder beerOrder = BeerOrder.builder()
+                .customer(customer).orderLines(Set.of(BeerOrderLine.builder().beer(beer).orderQuantity(2).build()))
+               .beerOrderShipment(BeerOrderShipment.builder().trackingNumber("rnc3456789").build())
+               .build();
+
+        BeerOrder saved = beerOrderRepository.save(beerOrder);
+        assertNotNull(saved.getId());
+        assertEquals(1, saved.getOrderLines().size());
+        assertEquals(beer, saved.getOrderLines().iterator().next().getBeer());
+        assertEquals(2, saved.getOrderLines().iterator().next().getOrderQuantity());
+        assertEquals(customer, saved.getCustomer());
+        assertNotNull(saved.getBeerOrderShipment());
+        assertNotNull(saved.getBeerOrderShipment().getId());
+        assertEquals("rnc3456789", saved.getBeerOrderShipment().getTrackingNumber());
+
     }
 
 
