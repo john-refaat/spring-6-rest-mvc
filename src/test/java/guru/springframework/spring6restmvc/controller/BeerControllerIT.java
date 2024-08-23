@@ -51,7 +51,7 @@ class BeerControllerIT {
     void listBeers() {
         List<BeerDTO> beerDTOS = (List<BeerDTO>) beerController.listBeers(null, null, null, null).get("content");
         assertNotNull(beerDTOS);
-        assertEquals(5, beerDTOS.size());
+        assertEquals(10, beerDTOS.size());
         assertNotNull(beerDTOS.getFirst());
         assertNotNull(beerDTOS.getLast());
     }
@@ -60,7 +60,7 @@ class BeerControllerIT {
     void listBeersByBeerName() {
         List<BeerDTO> beerDTOS = (List<BeerDTO>) beerController.listBeers(RISE, null, null, null).get("content");
         assertNotNull(beerDTOS);
-        assertEquals(5, beerDTOS.size());
+        assertEquals(7, beerDTOS.size());
         Assertions.assertThat(beerDTOS.getFirst().getBeerName()).containsIgnoringCase(RISE);
         Assertions.assertThat(beerDTOS.getLast().getBeerName()).containsIgnoringCase(RISE);
     }

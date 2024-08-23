@@ -129,7 +129,7 @@ class BeerControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "?beerName=foo&beerStyle=WHEAT"))
                .andExpect(MockMvcResultMatchers.status().isOk())
                .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
-               .andExpect(MockMvcResultMatchers.jsonPath("$.contentjo.[0].beerName").value("foo"));
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].beerName").value("foo"));
 
         //then
         ArgumentCaptor<Optional<String>> captor1 = ArgumentCaptor.forClass(Optional.class);

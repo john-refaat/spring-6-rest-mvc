@@ -39,7 +39,7 @@ public class BeerServiceImpl implements BeerService {
     public Page<BeerDTO> listBeers(Optional<String> beerName, Optional<BeerStyle> beerStyle, Optional<Integer> pageNumber, Optional<Integer> pageSize) {
         log.info("Getting beer list");
 
-        PageRequest pageRequest = PageRequest.of(pageNumber.orElse(1) - 1, pageSize.orElse(5), Sort.by(Sort.Order.asc("beerName")));
+        PageRequest pageRequest = PageRequest.of(pageNumber.orElse(1) - 1, pageSize.orElse(10), Sort.by(Sort.Order.asc("beerName")));
         Page<Beer> beerPage = null;
         if (beerName.isPresent() && beerStyle.isEmpty())
             beerPage = beerRepository.findByBeerNameLikeIgnoreCase("%"+beerName.get()+"%", pageRequest);
