@@ -29,6 +29,9 @@ class BeerOrderRepositoryTest {
     @Autowired
     CustomerRepository customerRepository;
 
+    @Autowired
+    BeerOrderShipmentRepository beerOrderShipmentRepository;
+
     private Beer beer;
     private Customer customer;
 
@@ -70,18 +73,28 @@ class BeerOrderRepositoryTest {
     void createBeerOrderWithShipment() {
         BeerOrder beerOrder = BeerOrder.builder()
                 .customer(customer).orderLines(Set.of(BeerOrderLine.builder().beer(beer).orderQuantity(2).build()))
-               .beerOrderShipment(BeerOrderShipment.builder().trackingNumber("rnc3456789").build())
-               .build();
+                .build();
 
-        BeerOrder saved = beerOrderRepository.save(beerOrder);
-        assertNotNull(saved.getId());
-        assertEquals(1, saved.getOrderLines().size());
-        assertEquals(beer, saved.getOrderLines().iterator().next().getBeer());
-        assertEquals(2, saved.getOrderLines().iterator().next().getOrderQuantity());
-        assertEquals(customer, saved.getCustomer());
-        assertNotNull(saved.getBeerOrderShipment());
-        assertNotNull(saved.getBeerOrderShipment().getId());
-        assertEquals("rnc3456789", saved.getBeerOrderShipment().getTrackingNumber());
+        BeerOrderShipment beerOrderShipment = BeerOrderShipment.builder().trackingNumber("rnc3456789")
+                .beerOrder(beerOrder).build();
+        BeerOrder savedOrder = beerOrderRepository.save(beerOrder);
+        BeerOrderShipment savedShipment = beerOrderShipmentRepository.save(beerOrderShipment);
+
+        //saved Order
+        assertNotNull(savedOrder.getId());
+
+        //saved Shipment
+        assertNotNull(savedShipment);
+        assertNotNull(savedShipment.getId());
+        assertNotNull(savedShipment.getBeerOrder());
+        assertEquals(savedOrder.getId(), savedShipment.getBeerOrder().getId());
+        assertEquals(beerOrderShipment.getTrackingNumber(), savedShipment.getTrackingNumber());
+
+        //Order Lines
+        assertEquals(1, savedOrder.getOrderLines().size());
+        assertEquals(beer, savedOrder.getOrderLines().iterator().next().getBeer());
+        assertEquals(2, savedOrder.getOrderLines().iterator().next().getOrderQuantity());
+        assertEquals(customer, savedOrder.getCustomer());
 
     }
 
