@@ -2,6 +2,7 @@ package guru.springframework.spring6restmvc.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.springframework.spring6restmvc.config.SpringSecurityConfig;
 import guru.springframework.spring6restmvc.model.CustomerDTO;
 import guru.springframework.spring6restmvc.services.CustomerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,11 +32,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 05/07/2024
  */
 @WebMvcTest(CustomerController.class)
+@Import(SpringSecurityConfig.class)
 class CustomerControllerTest {
 
     public static final CustomerDTO JOHN = CustomerDTO.builder().id(UUID.randomUUID()).name("John").build();
     public static final CustomerDTO JANE = CustomerDTO.builder().id(UUID.randomUUID()).name("Jane").build();
     public static final String BASE_PATH = "/api/v1/customer";
+    public static final String USERNAME = "restadmin";
+    public static final String PASSWORD = "password";
     @Autowired
     MockMvc mockMvc;
 
@@ -57,7 +63,8 @@ class CustomerControllerTest {
         Mockito.when(customerService.listCustomers()).thenReturn(List.of(JOHN, JANE));
 
         // When
-        mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH))
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH)
+                .with(httpBasic(USERNAME, PASSWORD)))
                 // Then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -75,7 +82,9 @@ class CustomerControllerTest {
         Mockito.when(customerService.getCustomerById(JOHN.getId())).thenReturn(Optional.of(JOHN));
 
         // When
-        mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH + "/" + JOHN.getId()))
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH + "/" + JOHN.getId())
+                        .with(httpBasic(USERNAME, PASSWORD))
+                )
                 // Then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(JOHN.getName()));
@@ -89,7 +98,8 @@ class CustomerControllerTest {
         Mockito.when(customerService.getCustomerById(JOHN.getId())).thenReturn(Optional.empty());
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH + "/" + UUID.randomUUID()))
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH + "/" + UUID.randomUUID())
+                        .with(httpBasic(USERNAME, PASSWORD)))
                 // then
                 .andExpect(status().isNotFound());
 
@@ -97,13 +107,14 @@ class CustomerControllerTest {
     }
 
     @Test
-    void createCustomer() throws Exception {
+        void createCustomer() throws Exception {
         // given
         CustomerDTO newCustomer = CustomerDTO.builder().name("John").build();
         BDDMockito.given(customerService.save(ArgumentMatchers.any(CustomerDTO.class))).willReturn(JOHN);
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.post(BASE_PATH)
+                        .with(httpBasic(USERNAME, PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(newCustomer)))
                 .andExpect(status().isCreated())
@@ -124,7 +135,8 @@ class CustomerControllerTest {
         // when
         mockMvc.perform(MockMvcRequestBuilders.put(BASE_PATH + "/" + JOHN.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(updatedCustomer)))
+                        .content(asJsonString(updatedCustomer))
+                        .with(httpBasic(USERNAME, PASSWORD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(JOHN.getId().toString()))
                 .andExpect(jsonPath("$.name").value(updatedCustomer.getName()));
@@ -143,6 +155,7 @@ class CustomerControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.patch(BASE_PATH + "/" + JOHN.getId())
+                        .with(httpBasic(USERNAME, PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(updatedCustomer)))
                 .andExpect(status().isOk())
@@ -160,7 +173,8 @@ class CustomerControllerTest {
         BDDMockito.given(customerService.deleteById(JOHN.getId())).willReturn(true);
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_PATH + "/" + JOHN.getId()))
+        mockMvc.perform(MockMvcRequestBuilders.delete(BASE_PATH + "/" + JOHN.getId())
+                        .with(httpBasic(USERNAME, PASSWORD)))
                 .andExpect(status().isNoContent());
 
         // then
