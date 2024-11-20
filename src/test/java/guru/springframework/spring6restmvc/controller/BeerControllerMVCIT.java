@@ -21,8 +21,10 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.time.Instant;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,7 +61,8 @@ public class BeerControllerMVCIT {
     @Test
     void listBeers() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH)
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                        //.with(httpBasic(USERNAME, PASSWORD)))
+                        .with(jwt().jwt(jwt -> jwt.notBefore(Instant.now().minusSeconds(5L)))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(10))
                 .andExpect(jsonPath("$.pageNumber").value(0))
@@ -75,7 +78,9 @@ public class BeerControllerMVCIT {
         mockMvc.perform(MockMvcRequestBuilders.get(
                 UriComponentsBuilder.fromPath(BeerController.PATH)
                         .queryParam("pageNumber", 2).build().toUri())
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                       // .with(httpBasic(USERNAME, PASSWORD))
+                        .with(jwt())
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(10))
                 .andExpect(jsonPath("$.pageNumber").value(1))
@@ -91,7 +96,9 @@ public class BeerControllerMVCIT {
         URI uri =  UriComponentsBuilder.fromPath(BeerController.PATH)
                 .queryParam("beerName", "IPA").build().toUri();
         mockMvc.perform(MockMvcRequestBuilders.get(uri.toString())
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                        //.with(httpBasic(USERNAME, PASSWORD)))
+                        .with(jwt())
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(10))
                .andExpect(jsonPath("$.content[0].beerName").value(Matchers.containsStringIgnoringCase("IPA")))
@@ -105,7 +112,9 @@ public class BeerControllerMVCIT {
 
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH)
                         .param("beerStyle", BeerStyle.WHEAT.name())
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                        //.with(httpBasic(USERNAME, PASSWORD)))
+                        .with(jwt())
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.pageNumber").value(0))
                 .andExpect(jsonPath("$.pageSize").value(10))
@@ -122,7 +131,9 @@ public class BeerControllerMVCIT {
         Beer first = beerRepository.findAll(PageRequest.of(0, 5)).getContent().getFirst();
         log.info("Beer: {}", first);
         mockMvc.perform(MockMvcRequestBuilders.get(BeerController.PATH + "/" + first.getId())
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                //        .with(httpBasic(USERNAME, PASSWORD))
+                                .with(jwt())
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.beerName").value(first.getBeerName()))
                 .andExpect(jsonPath("$.beerStyle").value(first.getBeerStyle().name()))
@@ -135,7 +146,8 @@ public class BeerControllerMVCIT {
     @Test
     void authenticateWrongPassword() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/beer")
-                        .with(httpBasic(USERNAME, "wrongpassword")))
+                        .with(httpBasic(USERNAME, "wrongpassword"))
+                )
                 .andExpect(status().isUnauthorized());
     }
 

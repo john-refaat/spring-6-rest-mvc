@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,7 +65,8 @@ class CustomerControllerTest {
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH)
-                .with(httpBasic(USERNAME, PASSWORD)))
+                //.with(httpBasic(USERNAME, PASSWORD)))
+                                .with(jwt()))
                 // Then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -83,7 +85,8 @@ class CustomerControllerTest {
 
         // When
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH + "/" + JOHN.getId())
-                        .with(httpBasic(USERNAME, PASSWORD))
+                        //.with(httpBasic(USERNAME, PASSWORD))
+                        .with(jwt())
                 )
                 // Then
                 .andExpect(status().isOk())
@@ -99,7 +102,8 @@ class CustomerControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_PATH + "/" + UUID.randomUUID())
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                        //.with(httpBasic(USERNAME, PASSWORD)))
+                                .with(jwt()))
                 // then
                 .andExpect(status().isNotFound());
 
@@ -114,7 +118,8 @@ class CustomerControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.post(BASE_PATH)
-                        .with(httpBasic(USERNAME, PASSWORD))
+                        //.with(httpBasic(USERNAME, PASSWORD))
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(newCustomer)))
                 .andExpect(status().isCreated())
@@ -136,7 +141,8 @@ class CustomerControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.put(BASE_PATH + "/" + JOHN.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(updatedCustomer))
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                        //.with(httpBasic(USERNAME, PASSWORD)))
+                        .with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(JOHN.getId().toString()))
                 .andExpect(jsonPath("$.name").value(updatedCustomer.getName()));
@@ -155,7 +161,8 @@ class CustomerControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.patch(BASE_PATH + "/" + JOHN.getId())
-                        .with(httpBasic(USERNAME, PASSWORD))
+                       // .with(httpBasic(USERNAME, PASSWORD))
+                        .with(jwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(updatedCustomer)))
                 .andExpect(status().isOk())
@@ -174,7 +181,8 @@ class CustomerControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.delete(BASE_PATH + "/" + JOHN.getId())
-                        .with(httpBasic(USERNAME, PASSWORD)))
+                        //.with(httpBasic(USERNAME, PASSWORD)))
+                        .with(jwt()))
                 .andExpect(status().isNoContent());
 
         // then
