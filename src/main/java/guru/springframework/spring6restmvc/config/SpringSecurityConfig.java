@@ -15,7 +15,10 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                        authorizationManagerRequestMatcherRegistry.anyRequest().authenticated())
+                        authorizationManagerRequestMatcherRegistry
+                                //.anyRequest().permitAll())
+                                .requestMatchers("/v3/api-docs**", "/swagger-ui/index.html", "/swagger-ui.html").permitAll()
+                                    .anyRequest().authenticated())
                 .oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer ->  {
                     httpSecurityOAuth2ResourceServerConfigurer.jwt(Customizer.withDefaults());
                 });
