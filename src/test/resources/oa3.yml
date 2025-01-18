@@ -1,0 +1,356 @@
+openapi: 3.0.1
+info:
+  title: Beer and Customer API
+  description: API for managing beers and customers.
+  version: 1.0.0
+paths:
+  /api/v1/beer:
+    get:
+      summary: List beers
+      parameters:
+        - name: beerName
+          in: query
+          description: Filter by beer name.
+          required: false
+          schema:
+            type: string
+        - name: beerStyle
+          in: query
+          description: Filter by beer style.
+          required: false
+          schema:
+            type: string
+            enum: [LAGER, PILSNER, STOUT, GOSE, PORTER, ALE, WHEAT, IPA, PALE_ALE, SAISON]
+        - name: pageNumber
+          in: query
+          description: Page number for pagination.
+          required: false
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          description: Page size for pagination.
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of beers.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                  pageNumber:
+                    type: integer
+                  pageSize:
+                    type: integer
+                  sorted:
+                    type: boolean
+                  first:
+                    type: boolean
+                  last:
+                    type: boolean
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BeerDTO'
+    post:
+      summary: Save a new beer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeerDTO'
+      responses:
+        '201':
+          description: Beer created successfully.
+          headers:
+            Location:
+              description: URL of the created beer.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeerDTO'
+  /api/v1/beer/search:
+    post:
+      summary: Search beers with criteria
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeerSearchCriteria'
+      responses:
+        '200':
+          description: List of beers matching the criteria.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BeerDTO'
+  /api/v1/beer/{beerId}:
+    get:
+      summary: Get a beer by ID
+      parameters:
+        - name: beerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Beer details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeerDTO'
+        '404':
+          description: Beer not found.
+    put:
+      summary: Update a beer by ID
+      parameters:
+        - name: beerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeerDTO'
+      responses:
+        '200':
+          description: Beer updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeerDTO'
+    patch:
+      summary: Patch a beer by ID
+      parameters:
+        - name: beerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeerDTO'
+      responses:
+        '204':
+          description: Beer patched successfully.
+    delete:
+      summary: Delete a beer by ID
+      parameters:
+        - name: beerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Beer deleted successfully.
+        '404':
+          description: Beer not found.
+  /api/v1/customer:
+    get:
+      summary: List customers
+      responses:
+        '200':
+          description: List of customers.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerDTO'
+    post:
+      summary: Create a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerDTO'
+      responses:
+        '201':
+          description: Customer created successfully.
+          headers:
+            Location:
+              description: URL of the created customer.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDTO'
+  /api/v1/customer/{customerId}:
+    get:
+      summary: Get a customer by ID
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Customer details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDTO'
+        '404':
+          description: Customer not found.
+    put:
+      summary: Update a customer by ID
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerDTO'
+      responses:
+        '200':
+          description: Customer updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDTO'
+    patch:
+      summary: Patch a customer by ID
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerDTO'
+      responses:
+        '200':
+          description: Customer patched successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDTO'
+    delete:
+      summary: Delete a customer by ID
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Customer deleted successfully.
+        '404':
+          description: Customer not found.
+components:
+  schemas:
+    BeerDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        beerName:
+          type: string
+          description: Beer Name is required
+          example: Classic Ale
+        beerStyle:
+          type: string
+          description: Beer Style is required
+          enum: [LAGER, PILSNER, STOUT, GOSE, PORTER, ALE, WHEAT, IPA, PALE_ALE, SAISON]
+        upc:
+          type: string
+          description: UPC is required
+          example: 123456789012
+        quantityOnHand:
+          type: integer
+          description: Number of beers currently in stock.
+        price:
+          type: number
+          format: double
+          description: Price is required
+        createdDate:
+          type: string
+          format: date-time
+          description: Date when the beer was created.
+        updateDate:
+          type: string
+          format: date-time
+          description: Date when the beer was last updated.
+    BeerSearchCriteria:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Filter by beer name.
+        style:
+          type: string
+          description: Filter by beer style.
+          enum: [LAGER, PILSNER, STOUT, GOSE, PORTER, ALE, WHEAT, IPA, PALE_ALE, SAISON]
+        priceMin:
+          type: number
+          format: double
+          description: Minimum price for filtering.
+        priceMax:
+          type: number
+          format: double
+          description: Maximum price for filtering.
+    CustomerDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Customer name.
+          example: John Doe
+        version:
+          type: integer
+        createdDate:
+          type: string
+          description: Date when the customer was created.
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$'
+        lastModifiedDate:
+          type: string
+          format: date-time
+          description: Date when the customer was last modified.
