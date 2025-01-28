@@ -57,14 +57,14 @@ public class BeerController {
 
     @GetMapping("/{beerId}")
     public BeerDTO getById(@PathVariable UUID beerId) {
-        log.debug("Get Beer by Id - in controller. Id: {}", beerId.toString());
+        log.info("Get Beer by Id - in controller. Id: {}", beerId.toString());
         return beerService.getById(beerId).orElseThrow(NotFoundException::new);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping({"/", ""})
     public BeerDTO save(@Validated @RequestBody BeerDTO beer, HttpServletResponse response) {
-        log.debug("Save Beer - in controller");
+        log.info("Save Beer - in controller");
         BeerDTO savedBeer = beerService.save(beer);
         response.addHeader("Location", PATH+"/"+savedBeer.getId().toString());
         return savedBeer;
