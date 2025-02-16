@@ -7,13 +7,17 @@ import guru.springframework.spring6restmvc.model.BeerDTO;
 import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,20 +28,19 @@ import java.util.stream.Collectors;
  * @since 01/07/2024
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class BeerServiceImpl implements BeerService {
 
     private final BeerRepository beerRepository;
     private final BeerMapper beerMapper;
+    private final CacheManager cacheManager;
 
-    public BeerServiceImpl(BeerRepository beerRepository, BeerMapper beerMapper) {
-        this.beerRepository = beerRepository;
-        this.beerMapper = beerMapper;
-    }
 
+    @Cacheable(cacheNames = "beerListCache")
     @Override
     public Page<BeerDTO> listBeers(Optional<String> beerName, Optional<BeerStyle> beerStyle, Optional<Integer> pageNumber, Optional<Integer> pageSize) {
-        log.info("Getting beer list");
+        log.info("List Beers - in service");
 
         PageRequest pageRequest = PageRequest.of(pageNumber.orElse(1) - 1, pageSize.orElse(10), Sort.by(Sort.Order.asc("beerName")));
         Page<Beer> beerPage = null;
@@ -62,6 +65,7 @@ public class BeerServiceImpl implements BeerService {
         return beerRepository.findBySearchCriteria(criteria).stream().map(beerMapper::beerToBeerDTO).collect(Collectors.toList());
     }
 
+    @Cacheable(cacheNames = "beerCache", key = "#id")
     @Override
     public Optional<BeerDTO> getById(UUID id) {
         log.info("Get Beer by Id - in service. Id: {}", id.toString());
@@ -71,13 +75,22 @@ public class BeerServiceImpl implements BeerService {
     @Override
     public BeerDTO save(BeerDTO beerDTO) {
         log.info("Saving beer to service. Id: {}", beerDTO);
+        clearBeerListCache();
         Beer savedBeer = beerRepository.save(beerMapper.beertDTOtoBeer(beerDTO));
         return beerMapper.beerToBeerDTO(savedBeer);
     }
 
+    //Cache Eviction does not work because it is in the same class as Get and Get List
+    /*@Caching(evict = {
+            @CacheEvict(cacheNames = "beerCache", key = "#beerId"),
+            @CacheEvict(cacheNames = "beerListCache")
+    })*/
     @Override
     public Optional<BeerDTO> update(UUID beerId, BeerDTO beer) {
         log.info("Update Beer - in service. Id: {}", beerId);
+        evictCache(beerId);
+
+
         AtomicReference<Optional<BeerDTO>> atomicReference = new AtomicReference<>();
         beerRepository.findById(beerId).ifPresentOrElse(beerFound -> {
             beerFound.setBeerName(beer.getBeerName());
@@ -91,9 +104,22 @@ public class BeerServiceImpl implements BeerService {
         return atomicReference.get();
     }
 
+    private void evictCache(UUID beerId) {
+        log.info("Evicting cache for beerId: {}", beerId.toString());
+        if (cacheManager.getCache("beerCache") != null)
+            Objects.requireNonNull(cacheManager.getCache("beerCache")).evict(beerId);
+        clearBeerListCache();
+    }
+
+    private void clearBeerListCache() {
+        if (cacheManager.getCache("beerListCache")!= null)
+            Objects.requireNonNull(cacheManager.getCache("beerListCache")).clear();
+    }
+
     @Override
     public Boolean deleteById(UUID beerId) {
         log.info("Delete Beer - in service. Id: {}", beerId.toString());
+        evictCache(beerId);
        if(beerRepository.existsById(beerId)) {
             beerRepository.deleteById(beerId);
             return true;
@@ -103,7 +129,8 @@ public class BeerServiceImpl implements BeerService {
 
     @Override
     public void patchById(UUID beerId, BeerDTO beer) {
-        log.debug("Patch Beer - in service. Id: " + beerId.toString());
+        log.debug("Patch Beer - in service. Id: {}", beerId.toString());
+        evictCache(beerId);
         Beer existingBeer = beerRepository.findById(beerId).orElseThrow(NotFoundException::new);
 
         if (beer.getBeerName() != null) {
