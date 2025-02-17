@@ -1,6 +1,7 @@
 package guru.springframework.spring6restmvc.services;
 
 import guru.springframework.spring6restmvc.domain.Beer;
+import guru.springframework.spring6restmvc.events.BeerCreatedEvent;
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerDTO;
@@ -11,9 +12,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +39,7 @@ public class BeerServiceImpl implements BeerService {
     private final BeerRepository beerRepository;
     private final BeerMapper beerMapper;
     private final CacheManager cacheManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
 
     @Cacheable(cacheNames = "beerListCache")
@@ -76,7 +81,11 @@ public class BeerServiceImpl implements BeerService {
     public BeerDTO save(BeerDTO beerDTO) {
         log.info("Saving beer to service. Id: {}", beerDTO);
         clearBeerListCache();
+        log.info("Thread ID: {}", Thread.currentThread().getId());
+        log.info("Thread Name: {}", Thread.currentThread().getName());
         Beer savedBeer = beerRepository.save(beerMapper.beertDTOtoBeer(beerDTO));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        applicationEventPublisher.publishEvent(new BeerCreatedEvent(savedBeer, authentication));
         return beerMapper.beerToBeerDTO(savedBeer);
     }
 

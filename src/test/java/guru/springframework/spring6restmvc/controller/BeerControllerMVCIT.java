@@ -2,24 +2,29 @@ package guru.springframework.spring6restmvc.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.spring6restmvc.domain.Beer;
+import guru.springframework.spring6restmvc.events.BeerCreatedEvent;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 
@@ -33,11 +38,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 26/08/2024
  */
 @Slf4j
+@RecordApplicationEvents
 @SpringBootTest
 public class BeerControllerMVCIT {
 
     public static final String USERNAME = "restadmin";
     public static final String PASSWORD = "password";
+
+    @Autowired
+    ApplicationEvents applicationEvents;
+
     @Autowired
     BeerRepository beerRepository;
 
@@ -56,6 +66,23 @@ public class BeerControllerMVCIT {
     void setUp() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .apply(SecurityMockMvcConfigurers.springSecurity()).build();
+    }
+
+    @Test
+    void createBeer() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post(BeerController.PATH)
+                .with(jwt())
+                .contentType("application/json")
+                .accept("application/json")
+                .content(objectMapper.writeValueAsString(Beer.builder()
+                        .beerName("Crazy beer")
+                        .beerStyle(BeerStyle.LAGER)
+                        .upc("345678")
+                        .price(BigDecimal.TEN)
+                        .build())))
+                .andExpect(status().isCreated());
+        Assertions.assertEquals(1, applicationEvents.stream(BeerCreatedEvent.class).count());
+
     }
 
     @Test

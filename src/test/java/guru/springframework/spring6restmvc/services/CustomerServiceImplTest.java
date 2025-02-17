@@ -13,6 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.CacheManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,9 +43,13 @@ class CustomerServiceImplTest {
 
     CustomerService customerService;
 
+    @Mock
+    CacheManager cacheManager;
+
+
     @BeforeEach
     void setUp() {
-        customerService = new CustomerServiceImpl(customerRepository, CustomerMapper.INSTANCE);
+        customerService = new CustomerServiceImpl(customerRepository, CustomerMapper.INSTANCE, cacheManager);
     }
 
     @Test
