@@ -3,6 +3,9 @@ package guru.springframework.spring6restmvc.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.events.BeerCreatedEvent;
+import guru.springframework.spring6restmvc.events.BeerDeletedEvent;
+import guru.springframework.spring6restmvc.events.BeerPatchEvent;
+import guru.springframework.spring6restmvc.events.BeerUpdatedEvent;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
@@ -30,6 +33,7 @@ import java.time.Instant;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.util.AssertionErrors.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -83,6 +87,56 @@ public class BeerControllerMVCIT {
                 .andExpect(status().isCreated());
         Assertions.assertEquals(1, applicationEvents.stream(BeerCreatedEvent.class).count());
 
+    }
+
+    @Test
+    void updateBeer() throws Exception {
+        Beer first = beerRepository.findAll(PageRequest.of(0, 5)).getContent().getFirst();
+        mockMvc.perform(MockMvcRequestBuilders.put(UriComponentsBuilder.fromPath(BeerController.PATH+"/{beerId}").build(first.getId()))
+                .with(jwt())
+                .contentType("application/json")
+                .accept("application/json")
+                .content(objectMapper.writeValueAsString(Beer.builder()
+                        .beerName("Updated "+first.getBeerName())
+                        .beerStyle(first.getBeerStyle())
+                        .upc(first.getUpc())
+                        .price(first.getPrice().add(BigDecimal.ONE))
+                        .quantityOnHand(200)
+                        .build())))
+                .andExpect(status().isOk());
+        Assertions.assertEquals(1, applicationEvents.stream(BeerUpdatedEvent.class).count());
+    }
+
+    @Test
+    void patchBeer() throws Exception {
+        Beer first = beerRepository.findAll(PageRequest.of(0, 5)).getContent().getFirst();
+        mockMvc.perform(MockMvcRequestBuilders.patch(UriComponentsBuilder.fromPath(BeerController.PATH+"/{beerId}").build(first.getId()))
+                .with(jwt())
+                .contentType("application/json")
+                .accept("application/json")
+                .content(objectMapper.writeValueAsString(Beer.builder()
+                        .quantityOnHand(first.getQuantityOnHand() + 50)
+                        .build())))
+                .andExpect(status().isNoContent());
+        Assertions.assertEquals(1, applicationEvents.stream(BeerPatchEvent.class).count());
+    }
+
+    @Test
+    void deleteBeer() throws Exception {
+        Beer savedBeer = beerRepository.save(Beer.builder()
+                .beerName("Heineken")
+                .beerStyle(BeerStyle.LAGER)
+                .upc("123456")
+                .price(BigDecimal.TEN)
+                .quantityOnHand(124)
+                .build());
+        mockMvc.perform(MockMvcRequestBuilders.delete(UriComponentsBuilder.fromPath(BeerController.PATH+"/{beerId}").build(savedBeer.getId()))
+                .with(jwt())
+                .contentType("application/json")
+                .accept("application/json"))
+                .andExpect(status().isNoContent());
+        Assertions.assertFalse(beerRepository.existsById(savedBeer.getId()));
+        Assertions.assertEquals(1, applicationEvents.stream(BeerDeletedEvent.class).count());
     }
 
     @Test

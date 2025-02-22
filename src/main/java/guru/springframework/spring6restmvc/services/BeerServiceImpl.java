@@ -2,6 +2,9 @@ package guru.springframework.spring6restmvc.services;
 
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.events.BeerCreatedEvent;
+import guru.springframework.spring6restmvc.events.BeerDeletedEvent;
+import guru.springframework.spring6restmvc.events.BeerPatchEvent;
+import guru.springframework.spring6restmvc.events.BeerUpdatedEvent;
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.model.BeerDTO;
@@ -19,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -77,13 +81,13 @@ public class BeerServiceImpl implements BeerService {
         return beerRepository.findById(id).map(beerMapper::beerToBeerDTO);
     }
 
+    @Transactional
     @Override
     public BeerDTO save(BeerDTO beerDTO) {
-        log.info("Saving beer to service. Id: {}", beerDTO);
+        log.info("Saving beer in service {}", beerDTO);
         clearBeerListCache();
-        log.info("Thread ID: {}", Thread.currentThread().getId());
-        log.info("Thread Name: {}", Thread.currentThread().getName());
         Beer savedBeer = beerRepository.save(beerMapper.beertDTOtoBeer(beerDTO));
+        beerRepository.flush();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         applicationEventPublisher.publishEvent(new BeerCreatedEvent(savedBeer, authentication));
         return beerMapper.beerToBeerDTO(savedBeer);
@@ -94,48 +98,54 @@ public class BeerServiceImpl implements BeerService {
             @CacheEvict(cacheNames = "beerCache", key = "#beerId"),
             @CacheEvict(cacheNames = "beerListCache")
     })*/
+
+    @Transactional
     @Override
     public Optional<BeerDTO> update(UUID beerId, BeerDTO beer) {
         log.info("Update Beer - in service. Id: {}", beerId);
         evictCache(beerId);
 
 
-        AtomicReference<Optional<BeerDTO>> atomicReference = new AtomicReference<>();
+        AtomicReference<Beer> atomicReference = new AtomicReference<>();
         beerRepository.findById(beerId).ifPresentOrElse(beerFound -> {
             beerFound.setBeerName(beer.getBeerName());
             beerFound.setBeerStyle(beer.getBeerStyle());
             beerFound.setUpc(beer.getUpc());
             beerFound.setPrice(beer.getPrice());
             beerFound.setQuantityOnHand(beer.getQuantityOnHand());
-            atomicReference.set(Optional.of(beerMapper.beerToBeerDTO(beerRepository.save(beerFound))));
-        }, () -> atomicReference.set(Optional.empty()));
 
-        return atomicReference.get();
+            Beer updatedBeer = beerRepository.save(beerFound);
+            beerRepository.flush();
+            atomicReference.set(updatedBeer);
+        }, () -> atomicReference.set(null));
+        Optional<BeerDTO> beerDTOOptional = Optional.empty();
+        if (atomicReference.get() != null) {
+            Beer updated= atomicReference.get();
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            applicationEventPublisher.publishEvent(new BeerUpdatedEvent(updated, authentication));
+            beerDTOOptional = Optional.of(beerMapper.beerToBeerDTO(updated));
+        }
+        return beerDTOOptional;
     }
 
-    private void evictCache(UUID beerId) {
-        log.info("Evicting cache for beerId: {}", beerId.toString());
-        if (cacheManager.getCache("beerCache") != null)
-            Objects.requireNonNull(cacheManager.getCache("beerCache")).evict(beerId);
-        clearBeerListCache();
-    }
-
-    private void clearBeerListCache() {
-        if (cacheManager.getCache("beerListCache")!= null)
-            Objects.requireNonNull(cacheManager.getCache("beerListCache")).clear();
-    }
-
+    @Transactional
     @Override
     public Boolean deleteById(UUID beerId) {
         log.info("Delete Beer - in service. Id: {}", beerId.toString());
         evictCache(beerId);
+
        if(beerRepository.existsById(beerId)) {
             beerRepository.deleteById(beerId);
+           Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+           applicationEventPublisher.publishEvent(BeerDeletedEvent.builder().authentication(authentication)
+                   .beer(Beer.builder().id(beerId).build()).build());
             return true;
         }
         return false;
     }
 
+    @Transactional
     @Override
     public void patchById(UUID beerId, BeerDTO beer) {
         log.debug("Patch Beer - in service. Id: {}", beerId.toString());
@@ -157,12 +167,28 @@ public class BeerServiceImpl implements BeerService {
         if (beer.getQuantityOnHand() != null) {
             existingBeer.setQuantityOnHand(beer.getQuantityOnHand());
         }
-        beerRepository.save(existingBeer);
+
+        Beer savedBeer = beerRepository.save(existingBeer);
+        beerRepository.flush();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        applicationEventPublisher.publishEvent(BeerPatchEvent.builder().beer(savedBeer).authentication(authentication).build());
     }
 
     @Override
     public long count() {
         return beerRepository.count();
+    }
+
+    private void evictCache(UUID beerId) {
+        log.info("Evicting cache for beerId: {}", beerId.toString());
+        if (cacheManager.getCache("beerCache") != null)
+            Objects.requireNonNull(cacheManager.getCache("beerCache")).evict(beerId);
+        clearBeerListCache();
+    }
+
+    private void clearBeerListCache() {
+        if (cacheManager.getCache("beerListCache")!= null)
+            Objects.requireNonNull(cacheManager.getCache("beerListCache")).clear();
     }
 
 }
