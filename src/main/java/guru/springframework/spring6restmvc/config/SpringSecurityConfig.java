@@ -19,7 +19,25 @@ import static org.springframework.boot.autoconfigure.security.servlet.PathReques
 public class SpringSecurityConfig {
 
     @Bean
+    @Profile("localmysql")
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth ->
+                        auth.requestMatchers("/actuator/**", "/v3/api-docs**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                                .anyRequest().authenticated())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(toH2Console())
+                        .disable())
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+
+                .oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer -> {
+                    httpSecurityOAuth2ResourceServerConfigurer.jwt(Customizer.withDefaults());
+                });
+        return http.build();
+    }
+
+    @Bean
+    @Profile("default")
+    public SecurityFilterChain filterChainH2(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth ->
                         auth.requestMatchers(toH2Console()).permitAll()
                                 .requestMatchers("/h2-console/**", "/actuator/**", "/v3/api-docs**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
@@ -32,10 +50,6 @@ public class SpringSecurityConfig {
                 .oauth2ResourceServer(httpSecurityOAuth2ResourceServerConfigurer -> {
                     httpSecurityOAuth2ResourceServerConfigurer.jwt(Customizer.withDefaults());
                 });
-               // .csrf(csrfProvider -> toH2Console());
-               /* .httpBasic(Customizer.withDefaults())
-                .csrf(httpSecurityCsrfConfigurer ->
-                        httpSecurityCsrfConfigurer.ignoringRequestMatchers("/api/**"));*/
         return http.build();
     }
 }

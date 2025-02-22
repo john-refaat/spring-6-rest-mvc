@@ -54,13 +54,13 @@ public class BeerServiceImpl implements BeerService {
         PageRequest pageRequest = PageRequest.of(pageNumber.orElse(1) - 1, pageSize.orElse(10), Sort.by(Sort.Order.asc("beerName")));
         Page<Beer> beerPage = null;
         if (beerName.isPresent() && beerStyle.isEmpty())
-            beerPage = beerRepository.findByBeerNameLikeIgnoreCase("%"+beerName.get()+"%", pageRequest);
+            beerPage = beerRepository.findByBeerNameLikeIgnoreCase("%" + beerName.get() + "%", pageRequest);
 
         if (beerName.isEmpty() && beerStyle.isPresent())
             beerPage = beerRepository.findByBeerStyle(beerStyle.get(), pageRequest);
 
         if (beerName.isPresent() && beerStyle.isPresent())
-            beerPage = beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle("%"+beerName.get()+"%", beerStyle.get(), pageRequest);
+            beerPage = beerRepository.findByBeerNameLikeIgnoreCaseAndBeerStyle("%" + beerName.get() + "%", beerStyle.get(), pageRequest);
 
         if (beerName.isEmpty() && beerStyle.isEmpty())
             beerPage = beerRepository.findAll(pageRequest);
@@ -120,7 +120,7 @@ public class BeerServiceImpl implements BeerService {
         }, () -> atomicReference.set(null));
         Optional<BeerDTO> beerDTOOptional = Optional.empty();
         if (atomicReference.get() != null) {
-            Beer updated= atomicReference.get();
+            Beer updated = atomicReference.get();
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             applicationEventPublisher.publishEvent(new BeerUpdatedEvent(updated, authentication));
@@ -135,11 +135,11 @@ public class BeerServiceImpl implements BeerService {
         log.info("Delete Beer - in service. Id: {}", beerId.toString());
         evictCache(beerId);
 
-       if(beerRepository.existsById(beerId)) {
+        if (beerRepository.existsById(beerId)) {
             beerRepository.deleteById(beerId);
-           Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-           applicationEventPublisher.publishEvent(BeerDeletedEvent.builder().authentication(authentication)
-                   .beer(Beer.builder().id(beerId).build()).build());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            applicationEventPublisher.publishEvent(BeerDeletedEvent.builder().authentication(authentication)
+                    .beer(Beer.builder().id(beerId).build()).build());
             return true;
         }
         return false;
@@ -187,7 +187,7 @@ public class BeerServiceImpl implements BeerService {
     }
 
     private void clearBeerListCache() {
-        if (cacheManager.getCache("beerListCache")!= null)
+        if (cacheManager.getCache("beerListCache") != null)
             Objects.requireNonNull(cacheManager.getCache("beerListCache")).clear();
     }
 

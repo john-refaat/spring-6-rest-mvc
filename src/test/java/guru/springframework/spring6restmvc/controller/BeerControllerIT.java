@@ -8,19 +8,17 @@ import guru.springframework.spring6restmvc.model.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.TransactionSystemException;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,6 +84,7 @@ class BeerControllerIT {
     void save() {
         BeerDTO beerDTO = BeerDTO.builder().beerName("Test Beer")
                 .beerStyle(BeerStyle.IPA).upc("1234567890123")
+                .price(BigDecimal.TWO)
                 .quantityOnHand(100)
                 .build();
         HttpServletResponse response = new MockHttpServletResponse();
@@ -105,7 +104,7 @@ class BeerControllerIT {
                 .beerStyle(BeerStyle.IPA).upc("1234567890123").price(BigDecimal.TEN)
                 .quantityOnHand(100)
                 .build();
-        assertThrows(TransactionSystemException.class, () -> {
+        assertThrows(ConstraintViolationException.class, () -> {
             beerController.save(beerDTO, new MockHttpServletResponse()); // should throw exception as beerName is too long
         });
     }
@@ -116,6 +115,7 @@ class BeerControllerIT {
     void update() {
         Beer beer = Beer.builder().beerName("Stella")
                 .beerStyle(BeerStyle.WHEAT).upc("1234567890123")
+                .price(BigDecimal.TEN)
                 .quantityOnHand(100)
                 .build();
         Beer savedBeer = beerRepository.save(beer);
@@ -139,6 +139,7 @@ class BeerControllerIT {
     void patchBeerById() {
         Beer beer = Beer.builder().beerName("Stella")
                 .beerStyle(BeerStyle.WHEAT).upc("1234567890123")
+                .price(BigDecimal.TEN)
                 .quantityOnHand(100)
                 .build();
         Beer savedBeer = beerRepository.save(beer);

@@ -2,7 +2,7 @@ package guru.springframework.spring6restmvc.listeners;
 
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.domain.BeerAudit;
-import guru.springframework.spring6restmvc.events.BeerCreatedEvent;
+import guru.springframework.spring6restmvc.events.*;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
 import guru.springframework.spring6restmvc.repository.BeerAuditRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,28 +14,29 @@ import org.springframework.stereotype.Component;
 
 /**
  * Author:john
- * Date:16/02/2025
- * Time:05:06
+ * Date:22/02/2025
+ * Time:04:11
  */
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class BeerCreatedEventListener {
+public class BeerEventListener {
 
     private final BeerMapper beerMapper;
     private final BeerAuditRepository beerAuditRepository;
 
+
     @Async
     @EventListener
-    public void listener(BeerCreatedEvent event) {
+    void listener(BeerEvent event) {
         Beer beer = event.getBeer();
         Authentication authentication = event.getAuthentication();
 
-        log.info("New beer created: {} by {}", beer.getBeerName(), authentication);
+        log.info("New beer Event: {} by {}", beer.getId(), authentication);
 
         BeerAudit beerAudit = beerMapper.beerToBeerAudit(event.getBeer());
 
-        beerAudit.setAuditEventType("BEER_CREATED");
+        beerAudit.setAuditEventType(getBeerEventType(event));
         if(event.getAuthentication() != null && event.getAuthentication().getName() != null)
             beerAudit.setPrincipalName(authentication.getName());
         log.info("Beer Audit: {}", beerAudit);
@@ -43,4 +44,15 @@ public class BeerCreatedEventListener {
         beerAuditRepository.save(beerAudit);
     }
 
+    private String getBeerEventType(BeerEvent event) {
+        String eventType;
+        switch (event) {
+            case BeerCreatedEvent beerCreatedEvent-> eventType =  "BEER_CREATED";
+            case BeerUpdatedEvent beerUpdatedEvent-> eventType = "BEER_UPDATED";
+            case BeerPatchEvent beerPatchedEvent-> eventType = "BEER_PATCHED";
+            case BeerDeletedEvent beerDeletedEvent-> eventType = "BEER_DELETED";
+            default -> eventType = "UNKNOWN";
+        }
+        return eventType;
+    }
 }
