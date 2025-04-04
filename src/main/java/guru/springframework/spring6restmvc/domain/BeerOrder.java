@@ -1,6 +1,7 @@
 package guru.springframework.spring6restmvc.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -30,8 +31,8 @@ public class BeerOrder {
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
         this.setCustomer(customer);
-        this.orderLines = orderLines;
-        this.beerOrderShipment = beerOrderShipment;
+        this.setOrderLines(orderLines);
+        this.setBeerOrderShipment(beerOrderShipment);
     }
 
     @Id
@@ -51,17 +52,34 @@ public class BeerOrder {
     @UpdateTimestamp
     private LocalDateTime lastModifiedDate;
 
+    @NotNull
     @ManyToOne
     private Customer customer;
 
-    @OneToMany(mappedBy = "beerOrder", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "beerOrder", cascade = CascadeType.ALL)
     private Set<BeerOrderLine> orderLines;
 
-    @OneToOne(mappedBy = "beerOrder")
+    @OneToOne(mappedBy = "beerOrder", cascade = CascadeType.ALL)
     private BeerOrderShipment beerOrderShipment;
 
     public void setCustomer(Customer customer) {
-        this.customer = customer;
-        customer.getBeerOrders().add(this);
+        if (customer != null) {
+            this.customer = customer;
+            customer.getBeerOrders().add(this);
+        }
+    }
+
+    public void setBeerOrderShipment(BeerOrderShipment beerOrderShipment) {
+        if (beerOrderShipment != null) {
+            this.beerOrderShipment = beerOrderShipment;
+            beerOrderShipment.setBeerOrder(this);
+        }
+    }
+
+    public void setOrderLines(Set<BeerOrderLine> orderLines) {
+        if (orderLines!= null) {
+            this.orderLines = orderLines;
+            orderLines.forEach(orderLine -> orderLine.setBeerOrder(this));
+        }
     }
 }

@@ -50,16 +50,16 @@ class BeerOrderRepositoryTest {
                 .customer(customer).orderLines(Set.of(BeerOrderLine.builder().beer(beer).orderQuantity(2).build()))
                 .build();
 
+        long count = beerOrderRepository.count();
         BeerOrder saved = beerOrderRepository.save(beerOrder);
         assertNotNull(saved.getId());
         assertEquals(1, saved.getOrderLines().size());
         assertEquals(beer, saved.getOrderLines().iterator().next().getBeer());
         assertEquals(2, saved.getOrderLines().iterator().next().getOrderQuantity());
         assertEquals(customer, saved.getCustomer());
-        assertEquals(1, beerOrderRepository.count());
+        assertEquals(count+1, beerOrderRepository.count());
 
         Customer savedCustomer = customerRepository.findById(customer.getId()).get();
-        assertEquals(1, savedCustomer.getBeerOrders().size());
         BeerOrder order = savedCustomer.getBeerOrders().iterator().next();
         assertNotNull(order);
         BeerOrderLine orderLine = order.getOrderLines().iterator().next();

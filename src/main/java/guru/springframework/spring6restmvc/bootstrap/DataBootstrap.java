@@ -1,16 +1,17 @@
 package guru.springframework.spring6restmvc.bootstrap;
 
-import guru.springframework.spring6restmvc.model.BeerCSVRecord;
-import guru.springframework.spring6restmvc.model.BeerDTO;
-import guru.springframework.spring6restmvc.model.BeerStyle;
-import guru.springframework.spring6restmvc.model.CustomerDTO;
+import guru.springframework.spring6restmvc.model.*;
 import guru.springframework.spring6restmvc.services.BeerCSVService;
+import guru.springframework.spring6restmvc.services.BeerOrderService;
 import guru.springframework.spring6restmvc.services.BeerService;
 import guru.springframework.spring6restmvc.services.CustomerService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
@@ -18,26 +19,21 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author john
  * @since 11/07/2024
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class DataBootstrap implements CommandLineRunner {
     private final BeerService beerService;
     private final CustomerService customerService;
     private final BeerCSVService beerCSVService;
+    private final BeerOrderService beerOrderService;
 
-    public DataBootstrap(BeerService beerService, CustomerService customerService, BeerCSVService beerCSVService) {
-        this.beerService = beerService;
-        this.customerService = customerService;
-        this.beerCSVService = beerCSVService;
-    }
 
     @Transactional
     @Override
@@ -46,6 +42,29 @@ public class DataBootstrap implements CommandLineRunner {
         loadBeers();
         loadCSVBeers();
         loadCustomers();
+        loadOrders();
+    }
+
+    private void loadOrders() {
+        if (beerOrderService.count() == 0) {
+            long count = customerService.count();
+            List<CustomerDTO> customers = customerService.listCustomers().subList(0, count>2?3:(int) count);
+            Page<BeerDTO> beers = beerService.listBeers(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+            Iterator<BeerDTO> beerIterator = beers.iterator();
+            for (CustomerDTO customer : customers) {
+                BeerDTO beer1 = beerIterator.next();
+                BeerDTO beer2 = beerIterator.next();
+
+                beerOrderService.createOrder(BeerOrderDTO.builder().customer(customer)
+                        .orderLines(Set.of(BeerOrderLineDTO.builder().beer(beer1).orderQuantity(2).build()))
+                      //  .beerOrderShipment(BeerOrderShipmentDTO.builder().trackingNumber(RandomStringUtils.randomAlphabetic(10)).build())
+                        .build());
+                beerOrderService.createOrder(BeerOrderDTO.builder().customer(customer)
+                        .orderLines(Set.of(BeerOrderLineDTO.builder().beer(beer2).orderQuantity(1).build()))
+                        .beerOrderShipment(BeerOrderShipmentDTO.builder().trackingNumber(RandomStringUtils.randomAlphabetic(10)).build())
+                        .build());
+            }
+        }
     }
 
     private void loadCSVBeers() throws FileNotFoundException {
