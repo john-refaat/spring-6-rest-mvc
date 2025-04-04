@@ -30,7 +30,7 @@ class BeerMapperTest {
        BeerDTO beerDTO = BeerDTO.builder().beerName(MY_BEER).price(PRICE).build();
 
         // when
-        Beer beer = beerMapper.beertDTOtoBeer(beerDTO);
+        Beer beer = beerMapper.beerDTOToBeer(beerDTO);
 
         // then
         assertEquals(MY_BEER, beer.getBeerName());

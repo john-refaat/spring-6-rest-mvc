@@ -15,7 +15,7 @@ import org.mapstruct.factory.Mappers;
 public interface BeerMapper {
 
     BeerMapper INSTANCE = Mappers.getMapper(BeerMapper.class);
-    Beer beertDTOtoBeer(BeerDTO beerDTO);
+    Beer beerDTOToBeer(BeerDTO beerDTO);
     BeerDTO beerToBeerDTO(Beer beer);
 
     @Mapping(target = "auditId", ignore = true)
