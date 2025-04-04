@@ -115,7 +115,7 @@ public class CustomerControllerIT {
     @Transactional
     @Test
     void deleteCustomer() {
-        Customer customer = customerRepository.findAll().getFirst();
+        Customer customer = customerRepository.save(Customer.builder().name("Joe").build());
         long count = customerRepository.count();
         assertTrue(count > 0);
         customerController.deleteCustomer(customer.getId());
