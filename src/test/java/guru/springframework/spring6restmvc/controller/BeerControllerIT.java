@@ -160,7 +160,9 @@ class BeerControllerIT {
     @Transactional
     @Test
     void deleteBeer() {
-        UUID beerId = beerRepository.findAll().getFirst().getId();
+        Beer beer = beerRepository.save(Beer.builder().beerName("NewBeer").beerStyle(BeerStyle.WHEAT)
+                .price(BigDecimal.TEN).upc("123456").build());
+        UUID beerId = beer.getId();
         long count = beerRepository.count();
         beerController.deleteCustomer(beerId);
         assertNull(beerRepository.findById(beerId).orElse(null));
