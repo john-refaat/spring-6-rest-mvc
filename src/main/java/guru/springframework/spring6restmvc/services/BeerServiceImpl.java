@@ -86,7 +86,7 @@ public class BeerServiceImpl implements BeerService {
     public BeerDTO save(BeerDTO beerDTO) {
         log.info("Saving beer in service {}", beerDTO);
         clearBeerListCache();
-        Beer savedBeer = beerRepository.save(beerMapper.beertDTOtoBeer(beerDTO));
+        Beer savedBeer = beerRepository.save(beerMapper.beerDTOToBeer(beerDTO));
         beerRepository.flush();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         applicationEventPublisher.publishEvent(new BeerCreatedEvent(savedBeer, authentication));
