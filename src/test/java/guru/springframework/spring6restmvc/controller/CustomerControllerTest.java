@@ -18,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,8 +42,11 @@ class CustomerControllerTest {
     public static final String BASE_PATH = "/api/v1/customer";
     public static final String USERNAME = "restadmin";
     public static final String PASSWORD = "password";
-    @Autowired
+   //@Autowired
     MockMvc mockMvc;
+
+    @Autowired
+    WebApplicationContext wac;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -51,6 +56,7 @@ class CustomerControllerTest {
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
     }
 
     private String asJsonString(CustomerDTO customer) throws JsonProcessingException {
