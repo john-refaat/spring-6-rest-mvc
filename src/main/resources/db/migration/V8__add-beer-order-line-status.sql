@@ -1,0 +1,1 @@
+ALTER table beer_order_line ADD COLUMN status VARCHAR(20);

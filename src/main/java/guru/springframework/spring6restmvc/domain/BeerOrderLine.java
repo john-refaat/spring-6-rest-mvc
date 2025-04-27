@@ -1,5 +1,6 @@
 package guru.springframework.spring6restmvc.domain;
 
+import guru.springframework.spring6restmvc.enums.BeerOrderLineStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -49,6 +50,11 @@ public class BeerOrderLine {
     @ManyToOne
     @JoinColumn(name = "beer_order_id", nullable = false)
     private BeerOrder beerOrder;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, columnDefinition = "varchar(20)", nullable = false, updatable = false)
+    private BeerOrderLineStatus status = BeerOrderLineStatus.NEW;
 
     @CreationTimestamp
     private LocalDateTime createdDate;

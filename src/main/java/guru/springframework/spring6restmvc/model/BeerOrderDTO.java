@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -31,4 +32,6 @@ public class BeerOrderDTO {
     private Set<BeerOrderLineDTO> orderLines;
 
     private BeerOrderShipmentDTO beerOrderShipment;
+
+    private BigDecimal paymentAmount;
 }

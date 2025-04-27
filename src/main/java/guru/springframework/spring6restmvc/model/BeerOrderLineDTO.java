@@ -1,5 +1,6 @@
 package guru.springframework.spring6restmvc.model;
 
+import guru.springframework.spring6restmvc.enums.BeerOrderLineStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -26,6 +27,8 @@ public class BeerOrderLineDTO {
     private Integer orderQuantity;
 
     private Integer quantityAllocated;
+
+    private BeerOrderLineStatus status;
 
     private Integer version;
 
