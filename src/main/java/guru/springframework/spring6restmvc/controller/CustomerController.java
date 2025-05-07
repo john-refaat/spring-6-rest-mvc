@@ -5,7 +5,7 @@ package guru.springframework.spring6restmvc.controller;
  * @since 02/07/2024
  */
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
-import guru.springframework.spring6restmvc.model.CustomerDTO;
+import guru.springframework.spring6restmvcapi.model.CustomerDTO;
 import guru.springframework.spring6restmvc.services.CustomerService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

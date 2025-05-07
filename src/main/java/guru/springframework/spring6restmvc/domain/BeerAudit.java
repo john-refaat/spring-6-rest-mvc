@@ -1,6 +1,6 @@
 package guru.springframework.spring6restmvc.domain;
 
-import guru.springframework.spring6restmvc.model.BeerStyle;
+import guru.springframework.spring6restmvcapi.enums.BeerStyle;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;

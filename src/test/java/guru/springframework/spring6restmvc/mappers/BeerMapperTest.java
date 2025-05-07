@@ -1,7 +1,7 @@
 package guru.springframework.spring6restmvc.mappers;
 
 import guru.springframework.spring6restmvc.domain.Beer;
-import guru.springframework.spring6restmvc.model.BeerDTO;
+import guru.springframework.spring6restmvcapi.model.BeerDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

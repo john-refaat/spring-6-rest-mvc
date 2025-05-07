@@ -6,10 +6,10 @@ import guru.springframework.spring6restmvc.domain.BeerOrderLine;
 import guru.springframework.spring6restmvc.domain.Customer;
 import guru.springframework.spring6restmvc.mappers.BeerOrderCreateMapper;
 import guru.springframework.spring6restmvc.mappers.BeerOrderMapper;
-import guru.springframework.spring6restmvc.model.BeerDTO;
-import guru.springframework.spring6restmvc.model.BeerOrderDTO;
-import guru.springframework.spring6restmvc.model.BeerOrderLineDTO;
-import guru.springframework.spring6restmvc.model.CustomerDTO;
+import guru.springframework.spring6restmvcapi.model.BeerDTO;
+import guru.springframework.spring6restmvcapi.model.BeerOrderDTO;
+import guru.springframework.spring6restmvcapi.model.BeerOrderLineDTO;
+import guru.springframework.spring6restmvcapi.model.CustomerDTO;
 import guru.springframework.spring6restmvc.repository.BeerOrderRepository;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import guru.springframework.spring6restmvc.repository.CustomerRepository;
@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -55,6 +56,9 @@ class BeerOrderServiceImplTest {
     BeerRepository beerRepository;
 
     @Mock
+    ApplicationEventPublisher applicationEventPublisher;
+
+    @Mock
     CustomerRepository customerRepository;
 
     BeerOrderMapper beerOrderMapper;
@@ -71,7 +75,8 @@ class BeerOrderServiceImplTest {
         beerOrderMapper = BeerOrderMapper.INSTANCE;
         beerOrderCreateMapper = BeerOrderCreateMapper.INSTANCE;
 
-        beerOrderService = new BeerOrderServiceImpl(beerOrderRepository, beerOrderMapper, beerOrderCreateMapper, beerRepository, customerRepository);
+        beerOrderService = new BeerOrderServiceImpl(beerOrderRepository, beerOrderMapper, beerOrderCreateMapper,
+                beerRepository, customerRepository, applicationEventPublisher);
         beerOrder1 = BeerOrder.builder().id(ID_1)
                 .orderLines(Set.of(
                         BeerOrderLine.builder().beer(

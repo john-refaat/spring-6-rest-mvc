@@ -1,7 +1,7 @@
 package guru.springframework.spring6restmvc.repository;
 
 import guru.springframework.spring6restmvc.domain.Beer;
-import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
+import guru.springframework.spring6restmvcapi.model.BeerSearchCriteria;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;

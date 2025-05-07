@@ -1,7 +1,7 @@
 package guru.springframework.spring6restmvc.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import guru.springframework.spring6restmvc.model.*;
+import guru.springframework.spring6restmvcapi.model.*;
 import guru.springframework.spring6restmvc.services.BeerOrderServiceImpl;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;

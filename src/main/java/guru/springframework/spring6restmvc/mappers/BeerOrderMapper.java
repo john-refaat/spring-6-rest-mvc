@@ -1,7 +1,7 @@
 package guru.springframework.spring6restmvc.mappers;
 
 import guru.springframework.spring6restmvc.domain.BeerOrder;
-import guru.springframework.spring6restmvc.model.BeerOrderDTO;
+import guru.springframework.spring6restmvcapi.model.BeerOrderDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

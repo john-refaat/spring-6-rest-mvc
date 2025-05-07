@@ -1,9 +1,9 @@
 package guru.springframework.spring6restmvc.controller;
 
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
-import guru.springframework.spring6restmvc.model.BeerDTO;
-import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
-import guru.springframework.spring6restmvc.model.BeerStyle;
+import guru.springframework.spring6restmvcapi.model.BeerDTO;
+import guru.springframework.spring6restmvcapi.model.BeerSearchCriteria;
+import guru.springframework.spring6restmvcapi.enums.BeerStyle;
 import guru.springframework.spring6restmvc.services.BeerService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

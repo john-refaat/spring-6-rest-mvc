@@ -2,8 +2,8 @@ package guru.springframework.spring6restmvc.repository;
 
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.domain.Category;
-import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
-import guru.springframework.spring6restmvc.model.BeerStyle;
+import guru.springframework.spring6restmvcapi.model.BeerSearchCriteria;
+import guru.springframework.spring6restmvcapi.enums.BeerStyle;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;

@@ -17,8 +17,8 @@ import java.util.UUID;
  * @author john
  * @since 02/08/2024
  */
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode
@@ -35,7 +35,7 @@ public class BeerOrder {
         this.setCustomer(customer);
         this.setOrderLines(orderLines);
         this.setBeerOrderShipment(beerOrderShipment);
-        this.setPaymentAmount(paymentAmount);
+        this.paymentAmount = paymentAmount;
     }
 
     @Id

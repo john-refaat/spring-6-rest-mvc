@@ -7,7 +7,7 @@ import guru.springframework.spring6restmvc.events.BeerDeletedEvent;
 import guru.springframework.spring6restmvc.events.BeerPatchEvent;
 import guru.springframework.spring6restmvc.events.BeerUpdatedEvent;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
-import guru.springframework.spring6restmvc.model.BeerStyle;
+import guru.springframework.spring6restmvcapi.enums.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

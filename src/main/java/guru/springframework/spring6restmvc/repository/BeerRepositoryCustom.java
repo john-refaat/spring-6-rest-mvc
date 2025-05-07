@@ -1,7 +1,7 @@
 package guru.springframework.spring6restmvc.repository;
 
 import guru.springframework.spring6restmvc.domain.Beer;
-import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
+import guru.springframework.spring6restmvcapi.model.BeerSearchCriteria;
 
 import java.util.List;
 

@@ -2,9 +2,9 @@ package guru.springframework.spring6restmvc.services;
 
 import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.mappers.BeerMapper;
-import guru.springframework.spring6restmvc.model.BeerDTO;
-import guru.springframework.spring6restmvc.model.BeerSearchCriteria;
-import guru.springframework.spring6restmvc.model.BeerStyle;
+import guru.springframework.spring6restmvcapi.model.BeerDTO;
+import guru.springframework.spring6restmvcapi.model.BeerSearchCriteria;
+import guru.springframework.spring6restmvcapi.enums.BeerStyle;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;

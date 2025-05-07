@@ -6,13 +6,15 @@ import guru.springframework.spring6restmvc.domain.BeerOrderShipment;
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
 import guru.springframework.spring6restmvc.mappers.BeerOrderCreateMapper;
 import guru.springframework.spring6restmvc.mappers.BeerOrderMapper;
-import guru.springframework.spring6restmvc.model.BeerOrderCreateDTO;
-import guru.springframework.spring6restmvc.model.BeerOrderDTO;
+import guru.springframework.spring6restmvcapi.events.OrderPlacedEvent;
+import guru.springframework.spring6restmvcapi.model.BeerOrderCreateDTO;
+import guru.springframework.spring6restmvcapi.model.BeerOrderDTO;
 import guru.springframework.spring6restmvc.repository.BeerOrderRepository;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import guru.springframework.spring6restmvc.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,8 @@ public class BeerOrderServiceImpl implements BeerOrderService {
 
     private final BeerRepository beerRepository;
     private final CustomerRepository customerRepository;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
 
     @Override
@@ -76,12 +80,16 @@ public class BeerOrderServiceImpl implements BeerOrderService {
         AtomicReference<Optional<BeerOrderDTO>> updatedOrderDTO = new AtomicReference<>();
         beerOrderRepository.findById(orderId)
                 .ifPresentOrElse(foundOrder -> {
-                    foundOrder.setBeerOrderShipment(beerOrder.getBeerOrderShipment());
+                            foundOrder.setBeerOrderShipment(beerOrder.getBeerOrderShipment());
                     foundOrder.setOrderLines(beerOrder.getOrderLines());
                     foundOrder.setCustomer(beerOrder.getCustomer());
                     updatedOrderDTO.set(Optional.of(beerOrderMapper.beerOrderToBeerOrderDTO(beerOrderRepository.save(foundOrder))));
                 },
                         ()->  updatedOrderDTO.set(Optional.empty()));
+
+        if (beerOrderDTO.getPaymentAmount()!=null && updatedOrderDTO.get().isPresent()) {
+            applicationEventPublisher.publishEvent(OrderPlacedEvent.builder().beerOrderDTO(updatedOrderDTO.get().get()).build());
+        }
         return updatedOrderDTO.get();
     }
 

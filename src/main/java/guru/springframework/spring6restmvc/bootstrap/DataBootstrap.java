@@ -1,6 +1,8 @@
 package guru.springframework.spring6restmvc.bootstrap;
 
-import guru.springframework.spring6restmvc.model.*;
+import guru.springframework.spring6restmvc.model.BeerCSVRecord;
+import guru.springframework.spring6restmvcapi.enums.BeerStyle;
+import guru.springframework.spring6restmvcapi.model.*;
 import guru.springframework.spring6restmvc.services.BeerCSVService;
 import guru.springframework.spring6restmvc.services.BeerOrderService;
 import guru.springframework.spring6restmvc.services.BeerService;
