@@ -11,8 +11,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import static guru.springframework.spring6restmvc.model.BeerStyle.*;
-
 /**
  * Author:john
  * Date:28/04/2025

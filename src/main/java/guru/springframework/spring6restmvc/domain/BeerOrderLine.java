@@ -1,6 +1,6 @@
 package guru.springframework.spring6restmvc.domain;
 
-import guru.springframework.spring6restmvc.enums.BeerOrderLineStatus;
+import guru.springframework.spring6restmvcapi.enums.BeerOrderLineStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
