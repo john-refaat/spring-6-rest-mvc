@@ -34,39 +34,43 @@ public class DrinkSplitterRouter {
         event.getBeerOrderDTO().getOrderLines().forEach(beerOrderLine -> {
             switch (beerOrderLine.getBeer().getBeerStyle()) {
                 case LAGER:
-                    log.debug("Splitting LAGER Order");
+                    log.info("Splitting LAGER Order");
+                    sendIceColdBeer(beerOrderLine);
+                    break;
+                case PILSNER:
+                    log.info("Splitting PILSNER Order");
                     sendIceColdBeer(beerOrderLine);
                     break;
                 case STOUT:
-                    log.debug("Splitting STOUT Order");
+                    log.info("Splitting STOUT Order");
                     sendCoolBeer(beerOrderLine);
                     break;
                 case GOSE:
-                    log.debug("Splitting Gose Order");
+                    log.info("Splitting Gose Order");
                     sendColdBeer(beerOrderLine);
                     break;
                 case PORTER:
-                    log.debug("Splitting PORTER Order");
+                    log.info("Splitting PORTER Order");
                     sendCoolBeer(beerOrderLine);
                     break;
                 case ALE:
-                    log.debug("Splitting ALE Order");
+                    log.info("Splitting ALE Order");
                     sendCoolBeer(beerOrderLine);
                     break;
                 case WHEAT:
-                    log.debug("Splitting WHEAT Order");
+                    log.info("Splitting WHEAT Order");
                     sendColdBeer(beerOrderLine);
                     break;
                 case IPA:
-                    log.debug("Splitting IPA Order");
+                    log.info("Splitting IPA Order");
                     sendCoolBeer(beerOrderLine);
                     break;
                 case PALE_ALE:
-                    log.debug("Splitting PALE_ALE Order");
+                    log.info("Splitting PALE_ALE Order");
                     sendCoolBeer(beerOrderLine);
                     break;
                 case SAISON:
-                    log.debug("Splitting SAISON Order");
+                    log.info("Splitting SAISON Order");
                     sendIceColdBeer(beerOrderLine);
                     break;
             }
