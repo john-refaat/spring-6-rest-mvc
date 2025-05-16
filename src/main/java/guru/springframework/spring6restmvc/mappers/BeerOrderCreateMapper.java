@@ -1,12 +1,15 @@
 package guru.springframework.spring6restmvc.mappers;
 
+import guru.springframework.spring6restmvc.domain.Beer;
 import guru.springframework.spring6restmvc.domain.BeerOrder;
 import guru.springframework.spring6restmvc.domain.BeerOrderLine;
+import guru.springframework.spring6restmvc.domain.Customer;
 import guru.springframework.spring6restmvc.exceptions.NotFoundException;
 import guru.springframework.spring6restmvcapi.model.BeerOrderCreateDTO;
 import guru.springframework.spring6restmvcapi.model.BeerOrderLineCreateDTO;
 import guru.springframework.spring6restmvc.repository.BeerRepository;
 import guru.springframework.spring6restmvc.repository.CustomerRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -20,6 +23,7 @@ import java.util.Set;
  * Date:03/03/2025
  * Time:05:40
  */
+@Slf4j
 @Mapper(unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE,
         componentModel = "spring")
 public abstract class BeerOrderCreateMapper {
@@ -53,18 +57,24 @@ public abstract class BeerOrderCreateMapper {
     abstract BeerOrderLine toBeerOrderLineEntity(BeerOrderLineCreateDTO beerOrderLineCreateDTO);
 
     public BeerOrder beerOrderCreateDTOToBeerOrder(BeerOrderCreateDTO beerOrderCreateDTO) {
+        log.info("Converting BeerOrderCreateDTO to BeerOrder");
         BeerOrder beerOrder = toEntity(beerOrderCreateDTO);
-        beerOrder.setCustomer(customerRepository.findById(beerOrderCreateDTO.getCustomerId()).orElseThrow(NotFoundException::new));
+        Customer customer = customerRepository.findById(beerOrderCreateDTO.getCustomerId()).orElseThrow(NotFoundException::new);
+        log.info("Found Customer: {}", customer.getName());
+        beerOrder.setCustomer(customer);
         Set<BeerOrderLine> orderLines = new HashSet<>();
         beerOrderCreateDTO.getOrderLines().forEach(line ->
                 orderLines.add(beerOrderLineCreateDTOToBeerOrderLine(line)));
         beerOrder.setOrderLines(orderLines);
+        log.info("BeerOrder Object: {}", beerOrder);
         return beerOrder;
     }
 
     public BeerOrderLine beerOrderLineCreateDTOToBeerOrderLine(BeerOrderLineCreateDTO beerOrderLineCreateDTO) {
         BeerOrderLine beerOrderLine = toBeerOrderLineEntity(beerOrderLineCreateDTO);
-        beerOrderLine.setBeer(beerRepository.findById(beerOrderLineCreateDTO.getBeerRef()).orElseThrow(NotFoundException::new));
+        Beer beer = beerRepository.findById(beerOrderLineCreateDTO.getBeerRef()).orElseThrow(NotFoundException::new);
+        log.info("Found Beer: {}", beer.getBeerName());
+        beerOrderLine.setBeer(beer);
         return beerOrderLine;
     }
 }
